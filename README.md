@@ -2,23 +2,20 @@
 
 Hot Ice is a mobile-first daily sports player guessing game.
 
-## Public beta files
+## Public Beta v29
 
-- `index.html` - full game app
-- `hot-ice-logo.png` - logo image
-- `.nojekyll` - GitHub Pages helper
+This build removes prototype/dev language from the public site and keeps the public beta menu clean.
 
 ## Live site
 
 https://playhotice.github.io/hot-ice/
 
+## Files
+
+- `index.html` - full game app
+- `hot-ice-logo.png` - logo image
+- `.nojekyll` - GitHub Pages helper
+
 ## Analytics
 
-Google Analytics is not enabled yet. To enable it:
-1. Create a GA4 web data stream.
-2. Send the Measurement ID that looks like `G-XXXXXXXXXX`.
-3. Replace the placeholder in `index.html`.
-
-## Feedback
-
-Feedback and missing-player buttons currently open GitHub Issues for this repository.
+Google Analytics is not enabled yet. To enable it, create a GA4 web data stream and send the Measurement ID that looks like `G-XXXXXXXXXX`.
