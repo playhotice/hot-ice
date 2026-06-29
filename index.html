@@ -1,11 +1,23 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <!-- Google Analytics can be added here later.
-       Once you create GA4, send the Measurement ID that looks like G-XXXXXXXXXX. -->
+  <!-- Google Analytics placeholder.
+       To enable analytics later, replace G-XXXXXXXXXX with your GA4 Measurement ID.
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-XXXXXXXXXX');
+
+    function trackEvent(name, params = {}) {
+      if (typeof gtag === 'function') gtag('event', name, params);
+    }
+  </script>
+  -->
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>Hot Ice - Sports Guessing Game</title>
+  <title>Hot Ice - Daily Sports Guessing Game</title>
   <meta name="description" content="Hot Ice is a daily hot-and-cold sports player guessing game across MLB, NFL, NBA, Premier League, and PGA.">
   <meta property="og:title" content="Hot Ice">
   <meta property="og:description" content="A daily hot-and-cold sports player guessing game.">
@@ -502,7 +514,7 @@
         </div>
         <div id="suggestions" class="suggestions" role="listbox"></div>
       </section>
-      <div id="status" class="status-note">Try typing any current athlete. Tap a suggestion or press Guess.</div>
+      <div id="status" class="status-note">Hot Ice Beta · Try typing any athlete. Tap a suggestion or press Guess.</div>
 
       <div class="section-title">
         <button id="clueToggle" class="clue-toggle">Need a clue?</button>
@@ -533,11 +545,9 @@
     <div class="modal">
       <h2>How to play</h2>
       <p>Guess the hidden athlete. Every guess gets a heat emoji and a similarity rank. Lower rank means closer. The list always sorts closest to coldest.</p>
-      <p><b>v8 player pool:</b> NFL, MLB, NBA, Premier League, and PGA top names.</p>
       <p><b>Emoji guide:</b> wrong sport is cold, right sport is 🔥, and right division/team is 🔥🔥.</p>
-      <p><b>Tuning shortcut:</b> type <b>/target José Ramírez</b> in the search box to test a specific answer.</p>
-      <p><b>Game pool:</b> all listed players are guessable, but only higher-recognition players are picked as answers.</p>
-      <p><b>Similarity tuning:</b> team, division/league, position, nationality, and age drive ranking. Fame/tier is not used for similarity scoring.</p>
+      <p><b>Player pool:</b> all listed players are guessable, but daily answers are chosen from more recognizable names.</p>
+      <p><b>Ranking:</b> same sport, team, division/league, position, nationality, and age all help determine how close your guess is.</p>
       <p><b>Daily mode:</b> everyone gets the same daily athlete. Practice mode gives you a random one.</p>
       <p><b>Scoring:</b> solve faster, use fewer guesses, and avoid clues for a higher score. Revealing the answer gives only 250 points.</p>
       <div class="modal-actions"><button class="modal-btn secondary" data-close="infoModal">Got it</button></div>
@@ -553,6 +563,8 @@
         <button class="modal-btn secondary" id="menuNewPuzzle">Practice Random Puzzle</button>
         <button class="modal-btn secondary" id="menuReveal">Reveal Answer</button>
         <button class="modal-btn secondary" id="menuStats">Stats</button>
+        <button class="modal-btn secondary" id="menuFeedback">Give Feedback</button>
+        <button class="modal-btn secondary" id="menuMissingPlayer">Report Missing Player</button>
         <button class="modal-btn secondary" data-close="menuModal">Close</button>
       </div>
     </div>
@@ -596,6 +608,7 @@
   </div>
 
   <script>
+    window.trackEvent = window.trackEvent || function(){};
     const players = [
       // MLB
       {id:'jose-ramirez',name:'José Ramírez',sport:'MLB',league:'American League',conference:'AL',division:'AL Central',team:'Cleveland Guardians',position:'3B',posGroup:'INF',nationality:'Dominican Republic',age:33,tier:94,aliases:['Jose Ramirez','J Ram']},
@@ -1227,16 +1240,7 @@
     }
 
     function handleTuningCommand(raw) {
-      const text = raw.trim();
-      if (!text.startsWith('/target ')) return false;
-      const name = text.replace('/target ', '').trim();
-      const player = findExactOrBest(name);
-      if (!player) {
-        setStatus(`No player found for "${name}". Try another spelling.`);
-        return true;
-      }
-      setTuningTarget(player);
-      return true;
+      return false;
     }
 
     function renderGuesses() {
@@ -1278,6 +1282,7 @@
       }
       const r = rankedAgainstTarget(player);
       guesses.push({ id: player.id, rank: r.rank, score: r.score });
+      trackEvent('guess_submitted', { sport: player.sport, rank: r.rank, mode: mode });
       input.value = '';
       suggestionsEl.classList.remove('show');
       const h = heatFromPlayer(player, r.score, r.rank, player.id === target.id);
@@ -1346,6 +1351,14 @@
       renderGuesses();
     });
 
+
+
+    const FEEDBACK_URL = 'https://github.com/playhotice/hot-ice/issues/new?title=Hot%20Ice%20Feedback&body=What%20did%20you%20notice%3F%0A%0A';
+    const MISSING_PLAYER_URL = 'https://github.com/playhotice/hot-ice/issues/new?title=Missing%20Player%20Suggestion&body=Player%20name%3A%0ASport%3A%0ATeam%3A%0A';
+
+    function openExternal(url) {
+      window.open(url, '_blank', 'noopener,noreferrer');
+    }
 
     function getStats() {
       try {
@@ -1419,6 +1432,7 @@
       const finalScore = computeScore();
       document.getElementById('winScore').textContent = finalScore.toLocaleString();
       updateStats({ won: !revealed, revealed, score: finalScore });
+      trackEvent(revealed ? 'game_revealed' : 'game_solved', { sport: target.sport, guesses: guesses.length, score: finalScore, mode: mode });
       document.getElementById('winModal').classList.add('show');
     }
 
@@ -1430,6 +1444,7 @@
       renderGuesses();
       document.getElementById('menuModal').classList.remove('show');
       setStatus(`Answer revealed: ${target.name} — ${REVEAL_SCORE.toLocaleString()} pts`);
+      trackEvent('answer_revealed', { sport: target.sport, mode: mode });
       win(true);
     }
 
@@ -1447,6 +1462,7 @@
       try {
         await navigator.clipboard.writeText(text);
         setStatus('Share result copied!');
+        trackEvent('share_copied', { mode: mode });
       } catch {
         window.prompt('Copy your result:', text);
       }
@@ -1485,43 +1501,14 @@
     document.getElementById('menuNewPuzzle').addEventListener('click', () => resetGame(true));
     document.getElementById('menuReveal').addEventListener('click', revealAnswer);
     document.getElementById('menuStats').addEventListener('click', () => { document.getElementById('menuModal').classList.remove('show'); renderStats(); });
+    document.getElementById('menuFeedback').addEventListener('click', () => openExternal(FEEDBACK_URL));
+    document.getElementById('menuMissingPlayer').addEventListener('click', () => openExternal(MISSING_PLAYER_URL));
 
     document.getElementById('infoBtn').addEventListener('click', () => document.getElementById('infoModal').classList.add('show'));
     document.getElementById('menuBtn').addEventListener('click', () => document.getElementById('menuModal').classList.add('show'));
     document.querySelectorAll('[data-close]').forEach(btn => btn.addEventListener('click', () => document.getElementById(btn.dataset.close).classList.remove('show')));
     document.querySelectorAll('.modal-backdrop').forEach(m => m.addEventListener('click', (e) => { if (e.target === m) m.classList.remove('show'); }));
-    document.getElementById('muteBtn').addEventListener('click', () => setStatus('Sound is not added yet — button is just a placeholder.'));
-
-
-    function getTopMatchesFor(targetId, limit = 12) {
-      const oldTarget = target;
-      if (!byId[targetId]) return [];
-      target = byId[targetId];
-      const rows = players
-        .filter(p => p.id !== target.id)
-        .map(p => {
-          const r = rankedAgainstTarget(p);
-          const h = heatFromPlayer(p, r.score, r.rank, false);
-          return { name: p.name, sport: p.sport, team: p.team, position: p.position, rank: r.rank, score: r.score, emoji: h.emoji };
-        })
-        .sort((a, b) => a.rank - b.rank)
-        .slice(0, limit);
-      target = oldTarget;
-      return rows;
-    }
-
-    function runEngineChecks() {
-      ['jose-ramirez', 'jalen-hurts', 'mohamed-salah', 'patrick-mahomes', 'lebron-james'].forEach(id => {
-        if (byId[id]) {
-          console.group(`Hot Ice engine check: ${byId[id].name}`);
-          console.table(getTopMatchesFor(id, 10));
-          console.groupEnd();
-        }
-      });
-      return 'Engine checks printed in console.';
-    }
-
-    window.HotIceDebug = { players, answerPool, isAnswerEligible, getTopMatchesFor, runEngineChecks };
+    document.getElementById('muteBtn').addEventListener('click', () => setStatus('Sound is off.'));
     renderGuesses();
   </script>
 </body>
