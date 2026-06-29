@@ -1,0 +1,1528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Google Analytics can be added here later.
+       Once you create GA4, send the Measurement ID that looks like G-XXXXXXXXXX. -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Hot Ice - Sports Guessing Game</title>
+  <meta name="description" content="Hot Ice is a daily hot-and-cold sports player guessing game across MLB, NFL, NBA, Premier League, and PGA.">
+  <meta property="og:title" content="Hot Ice">
+  <meta property="og:description" content="A daily hot-and-cold sports player guessing game.">
+  <meta property="og:type" content="website">
+  <meta name="theme-color" content="#ffffff">
+  <style>
+    :root {
+      --ink: #172033;
+      --muted: #7d8798;
+      --line: #e5e9f1;
+      --soft: #f7f8fb;
+      --card: #ffffff;
+      --hot: #ff3325;
+      --warm: #ff991a;
+      --sun: #ffc233;
+      --ice: #56b8f6;
+      --deep-ice: #276ce8;
+      --shadow: 0 18px 48px rgba(18, 27, 46, .10);
+      --small-shadow: 0 8px 22px rgba(18, 27, 46, .08);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--ink);
+      background: linear-gradient(180deg, #f8fafc 0%, #f5f6f8 100%);
+      min-height: 100%;
+      display: flex;
+      justify-content: center;
+      padding: 10px;
+    }
+
+    .phone-shell {
+      width: min(100%, 460px);
+      min-height: calc(100dvh - 20px);
+      background: #f9fafb;
+      border: 1px solid rgba(23, 32, 51, .08);
+      border-radius: 26px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .app {
+      min-height: calc(100dvh - 20px);
+      padding: 18px 18px 24px;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: flex-start;
+      min-width: 0;
+    }
+
+    .brand-logo {
+      width: 154px;
+      max-width: 42vw;
+      height: auto;
+      display: block;
+    }
+
+    .top-icons {
+      display: flex;
+      gap: 10px;
+      padding-top: 6px;
+    }
+
+    .icon-btn {
+      appearance: none;
+      border: 1px solid rgba(23, 32, 51, .06);
+      height: 46px;
+      width: 46px;
+      border-radius: 50%;
+      background: #fff;
+      box-shadow: 0 8px 20px rgba(18, 27, 46, .06);
+      color: #566075;
+      font-weight: 900;
+      font-size: 18px;
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .hero-stats {
+      text-align: center;
+      margin: 4px 0 20px;
+    }
+
+    .mini-row {
+      display: flex;
+      justify-content: center;
+      gap: 14px;
+      color: var(--muted);
+      font-weight: 800;
+      font-size: 14px;
+      margin-bottom: 6px;
+    }
+
+    h1 {
+      font-size: clamp(44px, 11vw, 58px);
+      margin: 0;
+      letter-spacing: -.9px;
+      font-weight: 900;
+      line-height: 1;
+    }
+
+    .guess-count {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .burst {
+      display: inline-block;
+      width: 26px;
+      height: 18px;
+      position: relative;
+      opacity: .9;
+    }
+    .burst.left { transform: rotate(180deg); }
+    .burst::before, .burst::after, .burst span {
+      content: "";
+      position: absolute;
+      height: 3px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--hot), var(--warm));
+      right: 0;
+    }
+    .burst.ice::before, .burst.ice::after, .burst.ice span { background: var(--ice); }
+    .burst::before { width: 12px; top: 0; transform: rotate(-28deg); transform-origin: right center; }
+    .burst span { width: 18px; top: 7px; }
+    .burst::after { width: 12px; bottom: 0; transform: rotate(28deg); transform-origin: right center; }
+
+    .search-wrap { position: relative; z-index: 3; }
+
+    .search-row {
+      display: grid;
+      grid-template-columns: 1fr 96px;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .input-shell {
+      height: 48px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0 15px;
+      background: #fff;
+      border: 2px solid var(--line);
+      border-radius: 17px;
+      box-shadow: 0 6px 18px rgba(18, 27, 46, .04);
+    }
+
+    .magnify {
+      width: 18px;
+      height: 18px;
+      border: 3px solid #9aa4b6;
+      border-radius: 50%;
+      position: relative;
+      flex: 0 0 auto;
+    }
+    .magnify::after {
+      content: "";
+      width: 8px;
+      height: 3px;
+      background: #9aa4b6;
+      border-radius: 999px;
+      position: absolute;
+      right: -7px;
+      bottom: -4px;
+      transform: rotate(45deg);
+    }
+
+    input {
+      border: none;
+      outline: none;
+      width: 100%;
+      font: inherit;
+      font-size: 17px;
+      font-weight: 750;
+      color: var(--ink);
+      background: transparent;
+      min-width: 0;
+    }
+    input::placeholder { color: #9aa4b6; }
+
+    .suggestions {
+      position: absolute;
+      top: calc(100% + 8px);
+      left: 0;
+      right: 0;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      max-height: 260px;
+      overflow-y: auto;
+      display: none;
+    }
+    .suggestions.show { display: block; }
+
+    .suggestion {
+      width: 100%;
+      appearance: none;
+      border: none;
+      background: #fff;
+      color: var(--ink);
+      padding: 13px 15px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      font: inherit;
+      cursor: pointer;
+      text-align: left;
+      border-bottom: 1px solid #f0f2f6;
+    }
+    .suggestion:last-child { border-bottom: none; }
+    .suggestion:active, .suggestion.active { background: #f7f8fb; }
+    .suggestion strong { font-size: 16px; display: block; }
+    .suggestion span { color: var(--muted); font-weight: 700; font-size: 12px; }
+    .suggestion .pill { display: none; }
+
+    .guess-button {
+      width: 100%;
+      height: 48px;
+      margin: 0;
+      border: 0;
+      background: linear-gradient(135deg, var(--hot), var(--warm), var(--ice), var(--deep-ice));
+      padding: 2px;
+      border-radius: 17px;
+      box-shadow: 0 7px 16px rgba(42, 136, 230, .10);
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      align-self: stretch;
+    }
+    .guess-button span {
+      height: 100%;
+      width: 100%;
+      border-radius: 15px;
+      display: grid;
+      place-items: center;
+      background: #fff;
+      color: var(--ink);
+      font-weight: 1000;
+      font-size: 15px;
+    }
+    .guess-button:active { transform: scale(.992); }
+
+    .status-note {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    .section-title {
+      margin: 10px 0 11px;
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+    }
+
+    .clue-toggle {
+      appearance: none;
+      border: none;
+      background: #f1f7ff;
+      color: #3c7dcc;
+      border-radius: 999px;
+      padding: 7px 10px;
+      font-weight: 900;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .clue-panel {
+      display: none;
+      background: #fbfcff;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 12px;
+      margin-bottom: 14px;
+      box-shadow: 0 8px 18px rgba(18, 27, 46, .04);
+    }
+    .clue-panel.show { display: block; }
+    .clue-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .clue-btn {
+      appearance: none;
+      border: 1px solid #dfe6f1;
+      border-radius: 13px;
+      background: #fff;
+      padding: 11px 8px;
+      color: var(--ink);
+      font-weight: 900;
+      cursor: pointer;
+      min-height: 48px;
+    }
+    .clue-btn.revealed {
+      color: #116cc1;
+      background: #eef8ff;
+      border-color: #bfe5ff;
+    }
+    .clue-hint {
+      margin: 9px 2px 0;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 750;
+    }
+
+    .guess-list { display: flex; flex-direction: column; gap: 4px; padding-bottom: 18px; }
+
+    .guess-row {
+      background: transparent;
+      border: none;
+      border-radius: 8px;
+      min-height: 28px;
+      box-shadow: none;
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      align-items: center;
+      gap: 6px;
+      overflow: visible;
+      padding: 0 3px;
+      opacity: 0;
+      transform: translateY(5px);
+      animation: rowIn 180ms ease-out forwards;
+    }
+    @keyframes rowIn { to { opacity: 1; transform: translateY(0); } }
+
+    .heatbar { display: none; }
+    .row-main { min-width: 0; padding: 0; }
+    .row-name { font-size: 16px; font-weight: 500; letter-spacing: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .row-sub { display: none; }
+    .row-emoji { font-size: 15px; min-width: 42px; text-align: center; letter-spacing: -4px; }
+    .row-rank { font-size: 17px; font-weight: 500; color: #596174; padding-right: 0; min-width: 50px; text-align: left; letter-spacing: 0; }
+
+    .empty-state {
+      border: 1px dashed #d6dde9;
+      border-radius: 18px;
+      padding: 18px;
+      background: #fbfcff;
+      color: var(--muted);
+      font-weight: 800;
+      line-height: 1.35;
+    }
+
+    .helper-card {
+      margin-top: 12px;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      border: 1px solid var(--line);
+      border-radius: 17px;
+      padding: 13px 14px;
+      color: #6b7486;
+      background: #fff;
+      box-shadow: 0 8px 18px rgba(18, 27, 46, .035);
+    }
+    .helper-card b { color: var(--ink); display: block; margin-bottom: 2px; }
+    .target-icon { font-size: 27px; }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(23, 32, 51, .30);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      z-index: 20;
+    }
+    .modal-backdrop.show { display: flex; }
+    .modal {
+      width: min(100%, 410px);
+      background: #fff;
+      border-radius: 25px;
+      padding: 22px;
+      box-shadow: 0 30px 80px rgba(0,0,0,.25);
+      border: 1px solid rgba(255,255,255,.5);
+    }
+    .modal h2 {
+      margin: 0 0 8px;
+      font-size: 31px;
+      line-height: 1;
+      letter-spacing: -.7px;
+    }
+    .modal p { color: #667085; font-weight: 750; line-height: 1.4; }
+    .modal-actions { display: grid; gap: 10px; margin-top: 16px; }
+    .modal-btn {
+      appearance: none;
+      border: none;
+      border-radius: 15px;
+      min-height: 50px;
+      font: inherit;
+      font-weight: 1000;
+      cursor: pointer;
+    }
+    .primary { color: #fff; background: linear-gradient(90deg, var(--hot), var(--warm)); }
+    .secondary { background: #f3f5f9; color: var(--ink); }
+
+    .win-player {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 15px;
+      margin: 14px 0;
+      background: linear-gradient(135deg, rgba(255, 69, 45, .08), rgba(80, 184, 246, .10));
+    }
+    .win-name { font-size: 27px; font-weight: 1000; }
+    .win-meta { color: #667085; font-weight: 850; }
+    .score-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+    .score-tile { background: #f7f8fb; border-radius: 15px; padding: 11px; }
+    .score-tile b { display: block; font-size: 22px; color: var(--ink); }
+    .score-tile span { color: var(--muted); font-size: 12px; font-weight: 900; }
+
+    .menu-row {
+      display: flex;
+      gap: 9px;
+      margin-top: 12px;
+    }
+    .compact-actions { display: none; }
+    .tiny-action {
+      flex: 1;
+      appearance: none;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fff;
+      padding: 12px 9px;
+      font-weight: 950;
+      color: var(--ink);
+      cursor: pointer;
+    }
+
+    @media (max-width: 420px) {
+      .search-row { grid-template-columns: 1fr 88px; gap: 8px; }
+      .brand-logo { width: 138px; }
+      h1 { font-size: clamp(42px, 10.5vw, 54px); }
+    }
+
+    @media (min-width: 700px) {
+      body { padding: 26px; }
+      .phone-shell { min-height: calc(100dvh - 52px); }
+      .app { min-height: calc(100dvh - 52px); padding: 24px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="phone-shell">
+    <div class="app">
+      <header class="topbar">
+        <div class="brand" aria-label="Hot Ice">
+          <img class="brand-logo" src="hot-ice-logo.png" alt="Hot Ice logo" />
+        </div>
+        <div class="top-icons">
+          <button class="icon-btn" id="infoBtn" aria-label="Info">ⓘ</button>
+          <button class="icon-btn" id="muteBtn" aria-label="Sound">🔇</button>
+          <button class="icon-btn" id="menuBtn" aria-label="Menu">☰</button>
+        </div>
+      </header>
+
+      <section class="hero-stats">
+        <div class="mini-row"><span id="timer">⏱ 0:00</span><span id="puzzleMini">Daily</span><span id="clueMini">Clues: 0</span></div>
+        <h1 class="guess-count"><span class="burst left"><span></span></span> Guesses: <span id="guessCount">0</span> <span class="burst ice"><span></span></span></h1>
+      </section>
+
+      <section class="search-wrap">
+        <div class="search-row">
+          <div class="input-shell">
+            <span class="magnify" aria-hidden="true"></span>
+            <input id="searchInput" type="text" inputmode="search" autocomplete="off" placeholder="Try José Ramírez" aria-label="Search player" />
+          </div>
+          <button id="guessBtn" class="guess-button"><span>Guess</span></button>
+        </div>
+        <div id="suggestions" class="suggestions" role="listbox"></div>
+      </section>
+      <div id="status" class="status-note">Try typing any current athlete. Tap a suggestion or press Guess.</div>
+
+      <div class="section-title">
+        <button id="clueToggle" class="clue-toggle">Need a clue?</button>
+      </div>
+
+      <section id="cluePanel" class="clue-panel">
+        <div class="clue-grid">
+          <button class="clue-btn" data-clue="sport">Reveal Sport</button>
+          <button class="clue-btn" data-clue="league">Reveal League</button>
+          <button class="clue-btn" data-clue="position">Reveal Position</button>
+          <button class="clue-btn" data-clue="team">Reveal Team/Club</button>
+        </div>
+        <div id="clueHint" class="clue-hint">Each clue will cost points later. For this prototype, clues are for testing flow.</div>
+      </section>
+
+      <section id="guessList" class="guess-list">
+        <div class="empty-state">Start with any athlete from NFL, MLB, NBA, Premier League, or PGA. The lower the rank, the closer you are.</div>
+      </section>
+
+      <div class="menu-row compact-actions">
+        <button class="tiny-action" id="newPuzzleBtn">New Puzzle</button>
+        <button class="tiny-action" id="copyStateBtn">Copy Result</button>
+      </div>
+    </div>
+  </main>
+
+  <div class="modal-backdrop" id="infoModal">
+    <div class="modal">
+      <h2>How to play</h2>
+      <p>Guess the hidden athlete. Every guess gets a heat emoji and a similarity rank. Lower rank means closer. The list always sorts closest to coldest.</p>
+      <p><b>v8 player pool:</b> NFL, MLB, NBA, Premier League, and PGA top names.</p>
+      <p><b>Emoji guide:</b> wrong sport is cold, right sport is 🔥, and right division/team is 🔥🔥.</p>
+      <p><b>Tuning shortcut:</b> type <b>/target José Ramírez</b> in the search box to test a specific answer.</p>
+      <p><b>Game pool:</b> all listed players are guessable, but only higher-recognition players are picked as answers.</p>
+      <p><b>Similarity tuning:</b> team, division/league, position, nationality, and age drive ranking. Fame/tier is not used for similarity scoring.</p>
+      <p><b>Daily mode:</b> everyone gets the same daily athlete. Practice mode gives you a random one.</p>
+      <p><b>Scoring:</b> solve faster, use fewer guesses, and avoid clues for a higher score. Revealing the answer gives only 250 points.</p>
+      <div class="modal-actions"><button class="modal-btn secondary" data-close="infoModal">Got it</button></div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="menuModal">
+    <div class="modal">
+      <h2>Hot Ice</h2>
+      <p>Mobile-first standalone prototype. No install. No Node. v8 expands the player pool and improves the sports similarity brain while keeping the locked design.</p>
+      <div class="modal-actions">
+        <button class="modal-btn secondary" id="menuDailyPuzzle">Today's Daily Puzzle</button>
+        <button class="modal-btn secondary" id="menuNewPuzzle">Practice Random Puzzle</button>
+        <button class="modal-btn secondary" id="menuReveal">Reveal Answer</button>
+        <button class="modal-btn secondary" id="menuStats">Stats</button>
+        <button class="modal-btn secondary" data-close="menuModal">Close</button>
+      </div>
+    </div>
+  </div>
+
+
+  <div class="modal-backdrop" id="statsModal">
+    <div class="modal">
+      <h2>Stats</h2>
+      <div class="score-grid">
+        <div class="score-tile"><b id="statPlayed">0</b><span>Played</span></div>
+        <div class="score-tile"><b id="statWins">0</b><span>Wins</span></div>
+        <div class="score-tile"><b id="statStreak">0</b><span>Current Streak</span></div>
+        <div class="score-tile"><b id="statMaxStreak">0</b><span>Max Streak</span></div>
+        <div class="score-tile"><b id="statBestScore">0</b><span>Best Score</span></div>
+      </div>
+      <div class="modal-actions">
+        <button class="modal-btn secondary" data-close="statsModal">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="winModal">
+    <div class="modal">
+      <h2 id="winTitle">🔥 Correct!</h2>
+      <div class="win-player">
+        <div id="winName" class="win-name"></div>
+        <div id="winMeta" class="win-meta"></div>
+      </div>
+      <div class="score-grid">
+        <div class="score-tile"><b id="winGuesses">0</b><span>Guesses</span></div>
+        <div class="score-tile"><b id="winTime">0:00</b><span>Time</span></div>
+        <div class="score-tile"><b id="winClues">0</b><span>Clues</span></div>
+        <div class="score-tile"><b id="winScore">0</b><span>Score</span></div>
+      </div>
+      <div class="modal-actions">
+        <button class="modal-btn primary" id="shareBtn">Copy Share Result</button>
+        <button class="modal-btn secondary" id="playAgainBtn">Play Again</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const players = [
+      // MLB
+      {id:'jose-ramirez',name:'José Ramírez',sport:'MLB',league:'American League',conference:'AL',division:'AL Central',team:'Cleveland Guardians',position:'3B',posGroup:'INF',nationality:'Dominican Republic',age:33,tier:94,aliases:['Jose Ramirez','J Ram']},
+      {id:'steven-kwan',name:'Steven Kwan',sport:'MLB',league:'American League',conference:'AL',division:'AL Central',team:'Cleveland Guardians',position:'OF',posGroup:'OF',nationality:'United States',age:28,tier:82},
+      {id:'bobby-witt-jr',name:'Bobby Witt Jr.',sport:'MLB',league:'American League',conference:'AL',division:'AL Central',team:'Kansas City Royals',position:'SS',posGroup:'INF',nationality:'United States',age:26,tier:93,aliases:['Bobby Witt']},
+      {id:'aaron-judge',name:'Aaron Judge',sport:'MLB',league:'American League',conference:'AL',division:'AL East',team:'New York Yankees',position:'OF',posGroup:'OF',nationality:'United States',age:34,tier:99},
+      {id:'shohei-ohtani',name:'Shohei Ohtani',sport:'MLB',league:'National League',conference:'NL',division:'NL West',team:'Los Angeles Dodgers',position:'DH/SP',posGroup:'TWP',nationality:'Japan',age:31,tier:100,aliases:['Ohtani']},
+      {id:'mookie-betts',name:'Mookie Betts',sport:'MLB',league:'National League',conference:'NL',division:'NL West',team:'Los Angeles Dodgers',position:'SS/OF',posGroup:'INF',nationality:'United States',age:33,tier:96},
+      {id:'freddie-freeman',name:'Freddie Freeman',sport:'MLB',league:'National League',conference:'NL',division:'NL West',team:'Los Angeles Dodgers',position:'1B',posGroup:'INF',nationality:'Canada',age:36,tier:92},
+      {id:'ronald-acuna-jr',name:'Ronald Acuña Jr.',sport:'MLB',league:'National League',conference:'NL',division:'NL East',team:'Atlanta Braves',position:'OF',posGroup:'OF',nationality:'Venezuela',age:28,tier:96,aliases:['Ronald Acuna Jr','Ronald Acuna']},
+      {id:'juan-soto',name:'Juan Soto',sport:'MLB',league:'National League',conference:'NL',division:'NL East',team:'New York Mets',position:'OF',posGroup:'OF',nationality:'Dominican Republic',age:27,tier:98},
+      {id:'francisco-lindor',name:'Francisco Lindor',sport:'MLB',league:'National League',conference:'NL',division:'NL East',team:'New York Mets',position:'SS',posGroup:'INF',nationality:'Puerto Rico',age:32,tier:92},
+      {id:'bryce-harper',name:'Bryce Harper',sport:'MLB',league:'National League',conference:'NL',division:'NL East',team:'Philadelphia Phillies',position:'1B',posGroup:'INF',nationality:'United States',age:33,tier:94},
+      {id:'zack-wheeler',name:'Zack Wheeler',sport:'MLB',league:'National League',conference:'NL',division:'NL East',team:'Philadelphia Phillies',position:'SP',posGroup:'P',nationality:'United States',age:35,tier:90},
+      {id:'gunnar-henderson',name:'Gunnar Henderson',sport:'MLB',league:'American League',conference:'AL',division:'AL East',team:'Baltimore Orioles',position:'SS/3B',posGroup:'INF',nationality:'United States',age:24,tier:91},
+      {id:'adley-rutschman',name:'Adley Rutschman',sport:'MLB',league:'American League',conference:'AL',division:'AL East',team:'Baltimore Orioles',position:'C',posGroup:'C',nationality:'United States',age:28,tier:86},
+      {id:'vladimir-guerrero-jr',name:'Vladimir Guerrero Jr.',sport:'MLB',league:'American League',conference:'AL',division:'AL East',team:'Toronto Blue Jays',position:'1B',posGroup:'INF',nationality:'Dominican Republic',age:27,tier:90,aliases:['Vlad Guerrero Jr','Vlad Jr']},
+      {id:'bo-bichette',name:'Bo Bichette',sport:'MLB',league:'American League',conference:'AL',division:'AL East',team:'Toronto Blue Jays',position:'SS',posGroup:'INF',nationality:'United States',age:28,tier:84},
+      {id:'yordan-alvarez',name:'Yordan Alvarez',sport:'MLB',league:'American League',conference:'AL',division:'AL West',team:'Houston Astros',position:'DH/OF',posGroup:'OF',nationality:'Cuba',age:29,tier:93},
+      {id:'jose-altuve',name:'José Altuve',sport:'MLB',league:'American League',conference:'AL',division:'AL West',team:'Houston Astros',position:'2B',posGroup:'INF',nationality:'Venezuela',age:36,tier:88,aliases:['Jose Altuve']},
+      {id:'julio-rodriguez',name:'Julio Rodríguez',sport:'MLB',league:'American League',conference:'AL',division:'AL West',team:'Seattle Mariners',position:'OF',posGroup:'OF',nationality:'Dominican Republic',age:25,tier:91,aliases:['Julio Rodriguez','J-Rod','J Rod']},
+      {id:'mike-trout',name:'Mike Trout',sport:'MLB',league:'American League',conference:'AL',division:'AL West',team:'Los Angeles Angels',position:'OF',posGroup:'OF',nationality:'United States',age:34,tier:92},
+      {id:'elly-de-la-cruz',name:'Elly De La Cruz',sport:'MLB',league:'National League',conference:'NL',division:'NL Central',team:'Cincinnati Reds',position:'SS',posGroup:'INF',nationality:'Dominican Republic',age:24,tier:88},
+      {id:'paul-skenes',name:'Paul Skenes',sport:'MLB',league:'National League',conference:'NL',division:'NL Central',team:'Pittsburgh Pirates',position:'SP',posGroup:'P',nationality:'United States',age:24,tier:89},
+      {id:'corbin-carroll',name:'Corbin Carroll',sport:'MLB',league:'National League',conference:'NL',division:'NL West',team:'Arizona Diamondbacks',position:'OF',posGroup:'OF',nationality:'United States',age:25,tier:86},
+      {id:'manny-machado',name:'Manny Machado',sport:'MLB',league:'National League',conference:'NL',division:'NL West',team:'San Diego Padres',position:'3B',posGroup:'INF',nationality:'United States',age:33,tier:90},
+      {id:'fernando-tatis-jr',name:'Fernando Tatis Jr.',sport:'MLB',league:'National League',conference:'NL',division:'NL West',team:'San Diego Padres',position:'OF/SS',posGroup:'OF',nationality:'Dominican Republic',age:27,tier:91,aliases:['Fernando Tatis']},
+
+      // NFL
+      {id:'patrick-mahomes',name:'Patrick Mahomes',sport:'NFL',league:'AFC',conference:'AFC',division:'AFC West',team:'Kansas City Chiefs',position:'QB',posGroup:'QB',nationality:'United States',age:30,tier:100},
+      {id:'travis-kelce',name:'Travis Kelce',sport:'NFL',league:'AFC',conference:'AFC',division:'AFC West',team:'Kansas City Chiefs',position:'TE',posGroup:'PASS',nationality:'United States',age:36,tier:93},
+      {id:'josh-allen',name:'Josh Allen',sport:'NFL',league:'AFC',conference:'AFC',division:'AFC East',team:'Buffalo Bills',position:'QB',posGroup:'QB',nationality:'United States',age:29,tier:98},
+      {id:'lamar-jackson',name:'Lamar Jackson',sport:'NFL',league:'AFC',conference:'AFC',division:'AFC North',team:'Baltimore Ravens',position:'QB',posGroup:'QB',nationality:'United States',age:29,tier:98},
+      {id:'joe-burrow',name:'Joe Burrow',sport:'NFL',league:'AFC',conference:'AFC',division:'AFC North',team:'Cincinnati Bengals',position:'QB',posGroup:'QB',nationality:'United States',age:29,tier:97},
+      {id:'ja-marr-chase',name:"Ja'Marr Chase",sport:'NFL',league:'AFC',conference:'AFC',division:'AFC North',team:'Cincinnati Bengals',position:'WR',posGroup:'PASS',nationality:'United States',age:25,tier:96,aliases:['Jamar Chase','JaMarr Chase']},
+      {id:'justin-jefferson',name:'Justin Jefferson',sport:'NFL',league:'NFC',conference:'NFC',division:'NFC North',team:'Minnesota Vikings',position:'WR',posGroup:'PASS',nationality:'United States',age:26,tier:97},
+      {id:'jalen-hurts',name:'Jalen Hurts',sport:'NFL',league:'NFC',conference:'NFC',division:'NFC East',team:'Philadelphia Eagles',position:'QB',posGroup:'QB',nationality:'United States',age:27,tier:94},
+      {id:'saquon-barkley',name:'Saquon Barkley',sport:'NFL',league:'NFC',conference:'NFC',division:'NFC East',team:'Philadelphia Eagles',position:'RB',posGroup:'SKILL',nationality:'United States',age:28,tier:95},
+      {id:'dak-prescott',name:'Dak Prescott',sport:'NFL',league:'NFC',conference:'NFC',division:'NFC East',team:'Dallas Cowboys',position:'QB',posGroup:'QB',nationality:'United States',age:32,tier:88},
+      {id:'ceedee-lamb',name:'CeeDee Lamb',sport:'NFL',league:'NFC',conference:'NFC',division:'NFC East',team:'Dallas Cowboys',position:'WR',posGroup:'PASS',nationality:'United States',age:26,tier:95,aliases:['Cee Dee Lamb']},
+      {id:'aaron-rodgers',name:'Aaron Rodgers',sport:'NFL',league:'AFC',conference:'AFC',division:'AFC North',team:'Pittsburgh Steelers',position:'QB',posGroup:'QB',nationality:'United States',age:42,tier:88},
+      {id:'myles-garrett',name:'Myles Garrett',sport:'NFL',league:'AFC',conference:'AFC',division:'AFC North',team:'Cleveland Browns',position:'EDGE',posGroup:'DEF',nationality:'United States',age:30,tier:97},
+      {id:'tj-watt',name:'T.J. Watt',sport:'NFL',league:'AFC',conference:'AFC',division:'AFC North',team:'Pittsburgh Steelers',position:'EDGE',posGroup:'DEF',nationality:'United States',age:31,tier:96,aliases:['TJ Watt']},
+      {id:'christian-mccaffrey',name:'Christian McCaffrey',sport:'NFL',league:'NFC',conference:'NFC',division:'NFC West',team:'San Francisco 49ers',position:'RB',posGroup:'SKILL',nationality:'United States',age:29,tier:95,aliases:['CMC']},
+      {id:'brock-purdy',name:'Brock Purdy',sport:'NFL',league:'NFC',conference:'NFC',division:'NFC West',team:'San Francisco 49ers',position:'QB',posGroup:'QB',nationality:'United States',age:26,tier:86},
+      {id:'deebo-samuel',name:'Deebo Samuel',sport:'NFL',league:'NFC',conference:'NFC',division:'NFC East',team:'Washington Commanders',position:'WR',posGroup:'PASS',nationality:'United States',age:30,tier:83},
+      {id:'jayden-daniels',name:'Jayden Daniels',sport:'NFL',league:'NFC',conference:'NFC',division:'NFC East',team:'Washington Commanders',position:'QB',posGroup:'QB',nationality:'United States',age:25,tier:91},
+      {id:'caleb-williams',name:'Caleb Williams',sport:'NFL',league:'NFC',conference:'NFC',division:'NFC North',team:'Chicago Bears',position:'QB',posGroup:'QB',nationality:'United States',age:24,tier:86},
+      {id:'amon-ra-st-brown',name:'Amon-Ra St. Brown',sport:'NFL',league:'NFC',conference:'NFC',division:'NFC North',team:'Detroit Lions',position:'WR',posGroup:'PASS',nationality:'United States',age:26,tier:94,aliases:['Amon Ra St Brown']},
+      {id:'jared-goff',name:'Jared Goff',sport:'NFL',league:'NFC',conference:'NFC',division:'NFC North',team:'Detroit Lions',position:'QB',posGroup:'QB',nationality:'United States',age:31,tier:88},
+      {id:'tyreek-hill',name:'Tyreek Hill',sport:'NFL',league:'AFC',conference:'AFC',division:'AFC East',team:'Miami Dolphins',position:'WR',posGroup:'PASS',nationality:'United States',age:31,tier:94},
+      {id:'tua-tagovailoa',name:'Tua Tagovailoa',sport:'NFL',league:'AFC',conference:'AFC',division:'AFC East',team:'Miami Dolphins',position:'QB',posGroup:'QB',nationality:'United States',age:27,tier:84},
+      {id:'cj-stroud',name:'C.J. Stroud',sport:'NFL',league:'AFC',conference:'AFC',division:'AFC South',team:'Houston Texans',position:'QB',posGroup:'QB',nationality:'United States',age:24,tier:91,aliases:['CJ Stroud']},
+      {id:'derrick-henry',name:'Derrick Henry',sport:'NFL',league:'AFC',conference:'AFC',division:'AFC North',team:'Baltimore Ravens',position:'RB',posGroup:'SKILL',nationality:'United States',age:31,tier:92},
+
+      // NBA
+      {id:'lebron-james',name:'LeBron James',sport:'NBA',league:'Western Conference',conference:'West',division:'Pacific',team:'Los Angeles Lakers',position:'SF/PF',posGroup:'F',nationality:'United States',age:41,tier:100,aliases:['Lebron James','LeBron']},
+      {id:'luka-doncic',name:'Luka Dončić',sport:'NBA',league:'Western Conference',conference:'West',division:'Pacific',team:'Los Angeles Lakers',position:'PG',posGroup:'G',nationality:'Slovenia',age:27,tier:99,aliases:['Luka Doncic']},
+      {id:'stephen-curry',name:'Stephen Curry',sport:'NBA',league:'Western Conference',conference:'West',division:'Pacific',team:'Golden State Warriors',position:'PG',posGroup:'G',nationality:'United States',age:38,tier:99,aliases:['Steph Curry']},
+      {id:'kevin-durant',name:'Kevin Durant',sport:'NBA',league:'Western Conference',conference:'West',division:'Southwest',team:'Houston Rockets',position:'SF/PF',posGroup:'F',nationality:'United States',age:37,tier:96,aliases:['KD']},
+      {id:'nikola-jokic',name:'Nikola Jokić',sport:'NBA',league:'Western Conference',conference:'West',division:'Northwest',team:'Denver Nuggets',position:'C',posGroup:'C',nationality:'Serbia',age:31,tier:100,aliases:['Nikola Jokic','Jokic']},
+      {id:'giannis-antetokounmpo',name:'Giannis Antetokounmpo',sport:'NBA',league:'Eastern Conference',conference:'East',division:'Central',team:'Milwaukee Bucks',position:'PF',posGroup:'F',nationality:'Greece',age:31,tier:99,aliases:['Giannis']},
+      {id:'jayson-tatum',name:'Jayson Tatum',sport:'NBA',league:'Eastern Conference',conference:'East',division:'Atlantic',team:'Boston Celtics',position:'SF/PF',posGroup:'F',nationality:'United States',age:28,tier:96},
+      {id:'jaylen-brown',name:'Jaylen Brown',sport:'NBA',league:'Eastern Conference',conference:'East',division:'Atlantic',team:'Boston Celtics',position:'SG/SF',posGroup:'G',nationality:'United States',age:29,tier:91},
+      {id:'shai-gilgeous-alexander',name:'Shai Gilgeous-Alexander',sport:'NBA',league:'Western Conference',conference:'West',division:'Northwest',team:'Oklahoma City Thunder',position:'SG/PG',posGroup:'G',nationality:'Canada',age:27,tier:99,aliases:['Shai','SGA']},
+      {id:'anthony-edwards',name:'Anthony Edwards',sport:'NBA',league:'Western Conference',conference:'West',division:'Northwest',team:'Minnesota Timberwolves',position:'SG',posGroup:'G',nationality:'United States',age:24,tier:95,aliases:['Ant Edwards']},
+      {id:'victor-wembanyama',name:'Victor Wembanyama',sport:'NBA',league:'Western Conference',conference:'West',division:'Southwest',team:'San Antonio Spurs',position:'C/PF',posGroup:'C',nationality:'France',age:22,tier:96,aliases:['Wemby']},
+      {id:'joel-embiid',name:'Joel Embiid',sport:'NBA',league:'Eastern Conference',conference:'East',division:'Atlantic',team:'Philadelphia 76ers',position:'C',posGroup:'C',nationality:'Cameroon',age:32,tier:96},
+      {id:'donovan-mitchell',name:'Donovan Mitchell',sport:'NBA',league:'Eastern Conference',conference:'East',division:'Central',team:'Cleveland Cavaliers',position:'SG',posGroup:'G',nationality:'United States',age:29,tier:94},
+      {id:'evan-mobley',name:'Evan Mobley',sport:'NBA',league:'Eastern Conference',conference:'East',division:'Central',team:'Cleveland Cavaliers',position:'PF/C',posGroup:'F',nationality:'United States',age:24,tier:88},
+      {id:'jalen-brunson',name:'Jalen Brunson',sport:'NBA',league:'Eastern Conference',conference:'East',division:'Atlantic',team:'New York Knicks',position:'PG',posGroup:'G',nationality:'United States',age:29,tier:94},
+      {id:'jimmy-butler',name:'Jimmy Butler',sport:'NBA',league:'Western Conference',conference:'West',division:'Pacific',team:'Golden State Warriors',position:'SF',posGroup:'F',nationality:'United States',age:36,tier:89},
+      {id:'devin-booker',name:'Devin Booker',sport:'NBA',league:'Western Conference',conference:'West',division:'Pacific',team:'Phoenix Suns',position:'SG',posGroup:'G',nationality:'United States',age:29,tier:94},
+      {id:'ja-morant',name:'Ja Morant',sport:'NBA',league:'Western Conference',conference:'West',division:'Southwest',team:'Memphis Grizzlies',position:'PG',posGroup:'G',nationality:'United States',age:26,tier:90},
+      {id:'paolo-banchero',name:'Paolo Banchero',sport:'NBA',league:'Eastern Conference',conference:'East',division:'Southeast',team:'Orlando Magic',position:'PF',posGroup:'F',nationality:'United States',age:23,tier:89},
+      {id:'trae-young',name:'Trae Young',sport:'NBA',league:'Eastern Conference',conference:'East',division:'Southeast',team:'Atlanta Hawks',position:'PG',posGroup:'G',nationality:'United States',age:27,tier:90},
+
+      // Premier League
+      {id:'mohamed-salah',name:'Mohamed Salah',sport:'Premier League',league:'Premier League',conference:'England',division:'Premier League',team:'Liverpool',position:'RW',posGroup:'ATT',nationality:'Egypt',age:33,tier:98,aliases:['Mo Salah']},
+      {id:'virgil-van-dijk',name:'Virgil van Dijk',sport:'Premier League',league:'Premier League',conference:'England',division:'Premier League',team:'Liverpool',position:'CB',posGroup:'DEF',nationality:'Netherlands',age:34,tier:94},
+      {id:'trent-alexander-arnold',name:'Trent Alexander-Arnold',sport:'Premier League',league:'Premier League',conference:'England',division:'Premier League',team:'Liverpool',position:'RB',posGroup:'DEF',nationality:'England',age:27,tier:91,aliases:['Trent']},
+      {id:'erling-haaland',name:'Erling Haaland',sport:'Premier League',league:'Premier League',conference:'England',division:'Premier League',team:'Manchester City',position:'ST',posGroup:'ATT',nationality:'Norway',age:25,tier:99},
+      {id:'kevin-de-bruyne',name:'Kevin De Bruyne',sport:'Premier League',league:'Premier League',conference:'England',division:'Premier League',team:'Manchester City',position:'CM',posGroup:'MID',nationality:'Belgium',age:34,tier:94,aliases:['KDB']},
+      {id:'phil-foden',name:'Phil Foden',sport:'Premier League',league:'Premier League',conference:'England',division:'Premier League',team:'Manchester City',position:'AM/LW',posGroup:'MID',nationality:'England',age:25,tier:92},
+      {id:'cole-palmer',name:'Cole Palmer',sport:'Premier League',league:'Premier League',conference:'England',division:'Premier League',team:'Chelsea',position:'AM/RW',posGroup:'MID',nationality:'England',age:23,tier:93},
+      {id:'bukayo-saka',name:'Bukayo Saka',sport:'Premier League',league:'Premier League',conference:'England',division:'Premier League',team:'Arsenal',position:'RW',posGroup:'ATT',nationality:'England',age:24,tier:95},
+      {id:'martin-odegaard',name:'Martin Ødegaard',sport:'Premier League',league:'Premier League',conference:'England',division:'Premier League',team:'Arsenal',position:'AM',posGroup:'MID',nationality:'Norway',age:27,tier:92,aliases:['Martin Odegaard']},
+      {id:'declan-rice',name:'Declan Rice',sport:'Premier League',league:'Premier League',conference:'England',division:'Premier League',team:'Arsenal',position:'DM/CM',posGroup:'MID',nationality:'England',age:27,tier:91},
+      {id:'bruno-fernandes',name:'Bruno Fernandes',sport:'Premier League',league:'Premier League',conference:'England',division:'Premier League',team:'Manchester United',position:'AM',posGroup:'MID',nationality:'Portugal',age:31,tier:91},
+      {id:'marcus-rashford',name:'Marcus Rashford',sport:'Premier League',league:'Premier League',conference:'England',division:'Premier League',team:'Aston Villa',position:'LW/ST',posGroup:'ATT',nationality:'England',age:28,tier:86},
+      {id:'ollie-watkins',name:'Ollie Watkins',sport:'Premier League',league:'Premier League',conference:'England',division:'Premier League',team:'Aston Villa',position:'ST',posGroup:'ATT',nationality:'England',age:30,tier:89},
+      {id:'heung-min-son',name:'Son Heung-min',sport:'Premier League',league:'Premier League',conference:'England',division:'Premier League',team:'Tottenham Hotspur',position:'LW/ST',posGroup:'ATT',nationality:'South Korea',age:33,tier:92,aliases:['Heung Min Son','Son']},
+      {id:'james-maddison',name:'James Maddison',sport:'Premier League',league:'Premier League',conference:'England',division:'Premier League',team:'Tottenham Hotspur',position:'AM',posGroup:'MID',nationality:'England',age:29,tier:85},
+      {id:'alexander-isak',name:'Alexander Isak',sport:'Premier League',league:'Premier League',conference:'England',division:'Premier League',team:'Newcastle United',position:'ST',posGroup:'ATT',nationality:'Sweden',age:26,tier:92},
+      {id:'bruno-guimaraes',name:'Bruno Guimarães',sport:'Premier League',league:'Premier League',conference:'England',division:'Premier League',team:'Newcastle United',position:'CM',posGroup:'MID',nationality:'Brazil',age:28,tier:89,aliases:['Bruno Guimaraes']},
+      {id:'jarrod-bowen',name:'Jarrod Bowen',sport:'Premier League',league:'Premier League',conference:'England',division:'Premier League',team:'West Ham United',position:'RW/ST',posGroup:'ATT',nationality:'England',age:29,tier:86},
+      {id:'kaoru-mitoma',name:'Kaoru Mitoma',sport:'Premier League',league:'Premier League',conference:'England',division:'Premier League',team:'Brighton',position:'LW',posGroup:'ATT',nationality:'Japan',age:28,tier:85},
+      {id:'marc-guehi',name:'Marc Guéhi',sport:'Premier League',league:'Premier League',conference:'England',division:'Premier League',team:'Crystal Palace',position:'CB',posGroup:'DEF',nationality:'England',age:25,tier:84,aliases:['Marc Guehi']},
+
+      // PGA
+      {id:'scottie-scheffler',name:'Scottie Scheffler',sport:'PGA',league:'PGA Tour',conference:'Golf',division:'PGA Tour',team:'Individual',position:'Golfer',posGroup:'GOLF',nationality:'United States',age:29,tier:100},
+      {id:'rory-mcilroy',name:'Rory McIlroy',sport:'PGA',league:'PGA Tour',conference:'Golf',division:'PGA Tour',team:'Individual',position:'Golfer',posGroup:'GOLF',nationality:'Northern Ireland',age:36,tier:98},
+      {id:'xander-schauffele',name:'Xander Schauffele',sport:'PGA',league:'PGA Tour',conference:'Golf',division:'PGA Tour',team:'Individual',position:'Golfer',posGroup:'GOLF',nationality:'United States',age:32,tier:96},
+      {id:'collin-morikawa',name:'Collin Morikawa',sport:'PGA',league:'PGA Tour',conference:'Golf',division:'PGA Tour',team:'Individual',position:'Golfer',posGroup:'GOLF',nationality:'United States',age:29,tier:93},
+      {id:'justin-thomas',name:'Justin Thomas',sport:'PGA',league:'PGA Tour',conference:'Golf',division:'PGA Tour',team:'Individual',position:'Golfer',posGroup:'GOLF',nationality:'United States',age:32,tier:90},
+      {id:'jordan-spieth',name:'Jordan Spieth',sport:'PGA',league:'PGA Tour',conference:'Golf',division:'PGA Tour',team:'Individual',position:'Golfer',posGroup:'GOLF',nationality:'United States',age:32,tier:89},
+      {id:'brooks-koepka',name:'Brooks Koepka',sport:'PGA',league:'LIV Golf',conference:'Golf',division:'LIV Golf',team:'Individual',position:'Golfer',posGroup:'GOLF',nationality:'United States',age:35,tier:91},
+      {id:'bryson-dechambeau',name:'Bryson DeChambeau',sport:'PGA',league:'LIV Golf',conference:'Golf',division:'LIV Golf',team:'Individual',position:'Golfer',posGroup:'GOLF',nationality:'United States',age:32,tier:94},
+      {id:'jon-rahm',name:'Jon Rahm',sport:'PGA',league:'LIV Golf',conference:'Golf',division:'LIV Golf',team:'Individual',position:'Golfer',posGroup:'GOLF',nationality:'Spain',age:31,tier:95},
+      {id:'hideki-matsuyama',name:'Hideki Matsuyama',sport:'PGA',league:'PGA Tour',conference:'Golf',division:'PGA Tour',team:'Individual',position:'Golfer',posGroup:'GOLF',nationality:'Japan',age:33,tier:89},
+      {id:'viktor-hovland',name:'Viktor Hovland',sport:'PGA',league:'PGA Tour',conference:'Golf',division:'PGA Tour',team:'Individual',position:'Golfer',posGroup:'GOLF',nationality:'Norway',age:28,tier:90},
+      {id:'ludvig-aberg',name:'Ludvig Åberg',sport:'PGA',league:'PGA Tour',conference:'Golf',division:'PGA Tour',team:'Individual',position:'Golfer',posGroup:'GOLF',nationality:'Sweden',age:26,tier:90,aliases:['Ludvig Aberg']},
+      {id:'tommy-fleetwood',name:'Tommy Fleetwood',sport:'PGA',league:'PGA Tour',conference:'Golf',division:'PGA Tour',team:'Individual',position:'Golfer',posGroup:'GOLF',nationality:'England',age:35,tier:88},
+      {id:'max-homa',name:'Max Homa',sport:'PGA',league:'PGA Tour',conference:'Golf',division:'PGA Tour',team:'Individual',position:'Golfer',posGroup:'GOLF',nationality:'United States',age:35,tier:87},
+      {id:'tony-finau',name:'Tony Finau',sport:'PGA',league:'PGA Tour',conference:'Golf',division:'PGA Tour',team:'Individual',position:'Golfer',posGroup:'GOLF',nationality:'United States',age:36,tier:86},
+
+      // MLB v8 additions
+      {id:'corey-seager',name:'Corey Seager',sport:'MLB',league:'American League',conference:'AL',division:'AL West',team:'Texas Rangers',position:'SS',posGroup:'INF',nationality:'United States',age:32,tier:94},
+      {id:'marcus-semien',name:'Marcus Semien',sport:'MLB',league:'American League',conference:'AL',division:'AL West',team:'Texas Rangers',position:'2B',posGroup:'INF',nationality:'United States',age:35,tier:88},
+      {id:'cal-raleigh',name:'Cal Raleigh',sport:'MLB',league:'American League',conference:'AL',division:'AL West',team:'Seattle Mariners',position:'C',posGroup:'C',nationality:'United States',age:29,tier:86},
+      {id:'logan-gilbert',name:'Logan Gilbert',sport:'MLB',league:'American League',conference:'AL',division:'AL West',team:'Seattle Mariners',position:'SP',posGroup:'P',nationality:'United States',age:29,tier:86},
+      {id:'triston-casas',name:'Triston Casas',sport:'MLB',league:'American League',conference:'AL',division:'AL East',team:'Boston Red Sox',position:'1B',posGroup:'INF',nationality:'United States',age:26,tier:83},
+      {id:'rafael-devers',name:'Rafael Devers',sport:'MLB',league:'National League',conference:'NL',division:'NL West',team:'San Francisco Giants',position:'3B',posGroup:'INF',nationality:'Dominican Republic',age:29,tier:91},
+      {id:'pete-alonso',name:'Pete Alonso',sport:'MLB',league:'National League',conference:'NL',division:'NL East',team:'New York Mets',position:'1B',posGroup:'INF',nationality:'United States',age:31,tier:89},
+      {id:'matt-mclain',name:'Matt McLain',sport:'MLB',league:'National League',conference:'NL',division:'NL Central',team:'Cincinnati Reds',position:'2B/SS',posGroup:'INF',nationality:'United States',age:26,tier:83},
+      {id:'christian-yelich',name:'Christian Yelich',sport:'MLB',league:'National League',conference:'NL',division:'NL Central',team:'Milwaukee Brewers',position:'OF',posGroup:'OF',nationality:'United States',age:34,tier:86},
+      {id:'william-contreras',name:'William Contreras',sport:'MLB',league:'National League',conference:'NL',division:'NL Central',team:'Milwaukee Brewers',position:'C',posGroup:'C',nationality:'Venezuela',age:28,tier:88},
+      {id:'jackson-chourio',name:'Jackson Chourio',sport:'MLB',league:'National League',conference:'NL',division:'NL Central',team:'Milwaukee Brewers',position:'OF',posGroup:'OF',nationality:'Venezuela',age:22,tier:86},
+      {id:'ian-happ',name:'Ian Happ',sport:'MLB',league:'National League',conference:'NL',division:'NL Central',team:'Chicago Cubs',position:'OF',posGroup:'OF',nationality:'United States',age:31,tier:83},
+      {id:'seiya-suzuki',name:'Seiya Suzuki',sport:'MLB',league:'National League',conference:'NL',division:'NL Central',team:'Chicago Cubs',position:'OF',posGroup:'OF',nationality:'Japan',age:31,tier:84},
+      {id:'nolan-arenado',name:'Nolan Arenado',sport:'MLB',league:'National League',conference:'NL',division:'NL Central',team:'St. Louis Cardinals',position:'3B',posGroup:'INF',nationality:'United States',age:35,tier:86},
+      {id:'ketel-marte',name:'Ketel Marte',sport:'MLB',league:'National League',conference:'NL',division:'NL West',team:'Arizona Diamondbacks',position:'2B',posGroup:'INF',nationality:'Dominican Republic',age:32,tier:90},
+      {id:'michael-king',name:'Michael King',sport:'MLB',league:'National League',conference:'NL',division:'NL West',team:'San Diego Padres',position:'SP',posGroup:'P',nationality:'United States',age:31,tier:84},
+      {id:'logan-webb',name:'Logan Webb',sport:'MLB',league:'National League',conference:'NL',division:'NL West',team:'San Francisco Giants',position:'SP',posGroup:'P',nationality:'United States',age:29,tier:87},
+      {id:'byron-buxton',name:'Byron Buxton',sport:'MLB',league:'American League',conference:'AL',division:'AL Central',team:'Minnesota Twins',position:'OF',posGroup:'OF',nationality:'United States',age:32,tier:84},
+      {id:'carlos-correa',name:'Carlos Correa',sport:'MLB',league:'American League',conference:'AL',division:'AL Central',team:'Minnesota Twins',position:'SS',posGroup:'INF',nationality:'Puerto Rico',age:31,tier:85},
+      {id:'tarik-skubal',name:'Tarik Skubal',sport:'MLB',league:'American League',conference:'AL',division:'AL Central',team:'Detroit Tigers',position:'SP',posGroup:'P',nationality:'United States',age:29,tier:91},
+      {id:'riley-greene',name:'Riley Greene',sport:'MLB',league:'American League',conference:'AL',division:'AL Central',team:'Detroit Tigers',position:'OF',posGroup:'OF',nationality:'United States',age:25,tier:84},
+      {id:'luis-robert-jr',name:'Luis Robert Jr.',sport:'MLB',league:'American League',conference:'AL',division:'AL Central',team:'Chicago White Sox',position:'OF',posGroup:'OF',nationality:'Cuba',age:28,tier:83,aliases:['Luis Robert']},
+      {id:'jacob-degrom',name:'Jacob deGrom',sport:'MLB',league:'American League',conference:'AL',division:'AL West',team:'Texas Rangers',position:'SP',posGroup:'P',nationality:'United States',age:38,tier:88},
+      {id:'max-scherzer',name:'Max Scherzer',sport:'MLB',league:'American League',conference:'AL',division:'AL East',team:'Toronto Blue Jays',position:'SP',posGroup:'P',nationality:'United States',age:41,tier:86},
+
+      // NFL v8 additions
+      {id:'dj-moore',name:'DJ Moore',sport:'NFL',league:'NFC',conference:'NFC',division:'NFC North',team:'Chicago Bears',position:'WR',posGroup:'SKILL',nationality:'United States',age:28,tier:86},
+      {id:'jordan-love',name:'Jordan Love',sport:'NFL',league:'NFC',conference:'NFC',division:'NFC North',team:'Green Bay Packers',position:'QB',posGroup:'QB',nationality:'United States',age:27,tier:90},
+      {id:'micah-parsons',name:'Micah Parsons',sport:'NFL',league:'NFC',conference:'NFC',division:'NFC East',team:'Dallas Cowboys',position:'EDGE/LB',posGroup:'DEF',nationality:'United States',age:27,tier:96},
+      {id:'malik-nabers',name:'Malik Nabers',sport:'NFL',league:'NFC',conference:'NFC',division:'NFC East',team:'New York Giants',position:'WR',posGroup:'SKILL',nationality:'United States',age:23,tier:88},
+      {id:'aj-brown',name:'A.J. Brown',sport:'NFL',league:'NFC',conference:'NFC',division:'NFC East',team:'Philadelphia Eagles',position:'WR',posGroup:'SKILL',nationality:'United States',age:29,tier:94,aliases:['AJ Brown']},
+      {id:'devonta-smith',name:'DeVonta Smith',sport:'NFL',league:'NFC',conference:'NFC',division:'NFC East',team:'Philadelphia Eagles',position:'WR',posGroup:'SKILL',nationality:'United States',age:27,tier:89,aliases:['Devonta Smith']},
+      {id:'baker-mayfield',name:'Baker Mayfield',sport:'NFL',league:'NFC',conference:'NFC',division:'NFC South',team:'Tampa Bay Buccaneers',position:'QB',posGroup:'QB',nationality:'United States',age:31,tier:87},
+      {id:'mike-evans',name:'Mike Evans',sport:'NFL',league:'NFC',conference:'NFC',division:'NFC South',team:'Tampa Bay Buccaneers',position:'WR',posGroup:'SKILL',nationality:'United States',age:33,tier:90},
+      {id:'bijan-robinson',name:'Bijan Robinson',sport:'NFL',league:'NFC',conference:'NFC',division:'NFC South',team:'Atlanta Falcons',position:'RB',posGroup:'SKILL',nationality:'United States',age:24,tier:91},
+      {id:'drake-london',name:'Drake London',sport:'NFL',league:'NFC',conference:'NFC',division:'NFC South',team:'Atlanta Falcons',position:'WR',posGroup:'SKILL',nationality:'United States',age:25,tier:86},
+      {id:'garrett-wilson',name:'Garrett Wilson',sport:'NFL',league:'AFC',conference:'AFC',division:'AFC East',team:'New York Jets',position:'WR',posGroup:'SKILL',nationality:'United States',age:26,tier:89},
+      {id:'jamarr-chase',name:'Ja’Marr Chase',sport:'NFL',league:'AFC',conference:'AFC',division:'AFC North',team:'Cincinnati Bengals',position:'WR',posGroup:'SKILL',nationality:'United States',age:26,tier:96,aliases:['JaMarr Chase','Jamar Chase']},
+      {id:'tee-higgins',name:'Tee Higgins',sport:'NFL',league:'AFC',conference:'AFC',division:'AFC North',team:'Cincinnati Bengals',position:'WR',posGroup:'SKILL',nationality:'United States',age:27,tier:88},
+      {id:'nick-chubb',name:'Nick Chubb',sport:'NFL',league:'AFC',conference:'AFC',division:'AFC North',team:'Cleveland Browns',position:'RB',posGroup:'SKILL',nationality:'United States',age:30,tier:87},
+      {id:'nico-collins',name:'Nico Collins',sport:'NFL',league:'AFC',conference:'AFC',division:'AFC South',team:'Houston Texans',position:'WR',posGroup:'SKILL',nationality:'United States',age:27,tier:89},
+      {id:'anthony-richardson',name:'Anthony Richardson',sport:'NFL',league:'AFC',conference:'AFC',division:'AFC South',team:'Indianapolis Colts',position:'QB',posGroup:'QB',nationality:'United States',age:24,tier:84},
+      {id:'trevor-lawrence',name:'Trevor Lawrence',sport:'NFL',league:'AFC',conference:'AFC',division:'AFC South',team:'Jacksonville Jaguars',position:'QB',posGroup:'QB',nationality:'United States',age:26,tier:87},
+      {id:'brian-thomas-jr',name:'Brian Thomas Jr.',sport:'NFL',league:'AFC',conference:'AFC',division:'AFC South',team:'Jacksonville Jaguars',position:'WR',posGroup:'SKILL',nationality:'United States',age:23,tier:85},
+      {id:'bo-nix',name:'Bo Nix',sport:'NFL',league:'AFC',conference:'AFC',division:'AFC West',team:'Denver Broncos',position:'QB',posGroup:'QB',nationality:'United States',age:26,tier:85},
+      {id:'davante-adams',name:'Davante Adams',sport:'NFL',league:'NFC',conference:'NFC',division:'NFC West',team:'Los Angeles Rams',position:'WR',posGroup:'SKILL',nationality:'United States',age:33,tier:90},
+      {id:'justin-herbert',name:'Justin Herbert',sport:'NFL',league:'AFC',conference:'AFC',division:'AFC West',team:'Los Angeles Chargers',position:'QB',posGroup:'QB',nationality:'United States',age:28,tier:92},
+      {id:'brock-bowers',name:'Brock Bowers',sport:'NFL',league:'AFC',conference:'AFC',division:'AFC West',team:'Las Vegas Raiders',position:'TE',posGroup:'SKILL',nationality:'United States',age:23,tier:89},
+      {id:'puka-nacua',name:'Puka Nacua',sport:'NFL',league:'NFC',conference:'NFC',division:'NFC West',team:'Los Angeles Rams',position:'WR',posGroup:'SKILL',nationality:'United States',age:25,tier:89},
+      {id:'cooper-kupp',name:'Cooper Kupp',sport:'NFL',league:'AFC',conference:'AFC',division:'AFC South',team:'Jacksonville Jaguars',position:'WR',posGroup:'SKILL',nationality:'United States',age:33,tier:86},
+      {id:'kyler-murray',name:'Kyler Murray',sport:'NFL',league:'NFC',conference:'NFC',division:'NFC West',team:'Arizona Cardinals',position:'QB',posGroup:'QB',nationality:'United States',age:29,tier:88},
+      {id:'marvin-harrison-jr',name:'Marvin Harrison Jr.',sport:'NFL',league:'NFC',conference:'NFC',division:'NFC West',team:'Arizona Cardinals',position:'WR',posGroup:'SKILL',nationality:'United States',age:24,tier:88},
+      {id:'dk-metcalf',name:'DK Metcalf',sport:'NFL',league:'AFC',conference:'AFC',division:'AFC North',team:'Pittsburgh Steelers',position:'WR',posGroup:'SKILL',nationality:'United States',age:28,tier:88},
+      {id:'breece-hall',name:'Breece Hall',sport:'NFL',league:'AFC',conference:'AFC',division:'AFC East',team:'New York Jets',position:'RB',posGroup:'SKILL',nationality:'United States',age:25,tier:88},
+
+      // NBA v8 additions
+      {id:'anthony-davis',name:'Anthony Davis',sport:'NBA',league:'Western Conference',conference:'West',division:'Southwest',team:'Dallas Mavericks',position:'PF/C',posGroup:'F',nationality:'United States',age:33,tier:95},
+      {id:'kyrie-irving',name:'Kyrie Irving',sport:'NBA',league:'Western Conference',conference:'West',division:'Southwest',team:'Dallas Mavericks',position:'PG',posGroup:'G',nationality:'United States',age:34,tier:92},
+      {id:'draymond-green',name:'Draymond Green',sport:'NBA',league:'Western Conference',conference:'West',division:'Pacific',team:'Golden State Warriors',position:'PF',posGroup:'F',nationality:'United States',age:36,tier:84},
+      {id:'rudy-gobert',name:'Rudy Gobert',sport:'NBA',league:'Western Conference',conference:'West',division:'Northwest',team:'Minnesota Timberwolves',position:'C',posGroup:'C',nationality:'France',age:33,tier:86},
+      {id:'chet-holmgren',name:'Chet Holmgren',sport:'NBA',league:'Western Conference',conference:'West',division:'Northwest',team:'Oklahoma City Thunder',position:'PF/C',posGroup:'F',nationality:'United States',age:24,tier:89},
+      {id:'jalen-williams',name:'Jalen Williams',sport:'NBA',league:'Western Conference',conference:'West',division:'Northwest',team:'Oklahoma City Thunder',position:'SG/SF',posGroup:'G',nationality:'United States',age:25,tier:90},
+      {id:'jamal-murray',name:'Jamal Murray',sport:'NBA',league:'Western Conference',conference:'West',division:'Northwest',team:'Denver Nuggets',position:'PG',posGroup:'G',nationality:'Canada',age:29,tier:89},
+      {id:'amen-thompson',name:'Amen Thompson',sport:'NBA',league:'Western Conference',conference:'West',division:'Southwest',team:'Houston Rockets',position:'PG/SF',posGroup:'G',nationality:'United States',age:23,tier:86},
+      {id:'zion-williamson',name:'Zion Williamson',sport:'NBA',league:'Western Conference',conference:'West',division:'Southwest',team:'New Orleans Pelicans',position:'PF',posGroup:'F',nationality:'United States',age:25,tier:88},
+      {id:'damian-lillard',name:'Damian Lillard',sport:'NBA',league:'Eastern Conference',conference:'East',division:'Central',team:'Milwaukee Bucks',position:'PG',posGroup:'G',nationality:'United States',age:35,tier:92,aliases:['Dame Lillard']},
+      {id:'cade-cunningham',name:'Cade Cunningham',sport:'NBA',league:'Eastern Conference',conference:'East',division:'Central',team:'Detroit Pistons',position:'PG',posGroup:'G',nationality:'United States',age:24,tier:91},
+      {id:'scottie-barnes',name:'Scottie Barnes',sport:'NBA',league:'Eastern Conference',conference:'East',division:'Atlantic',team:'Toronto Raptors',position:'SF/PF',posGroup:'F',nationality:'United States',age:24,tier:88},
+      {id:'tyrese-maxey',name:'Tyrese Maxey',sport:'NBA',league:'Eastern Conference',conference:'East',division:'Atlantic',team:'Philadelphia 76ers',position:'PG/SG',posGroup:'G',nationality:'United States',age:25,tier:91},
+      {id:'bam-adebayo',name:'Bam Adebayo',sport:'NBA',league:'Eastern Conference',conference:'East',division:'Southeast',team:'Miami Heat',position:'C/PF',posGroup:'C',nationality:'United States',age:28,tier:89},
+      {id:'lamelo-ball',name:'LaMelo Ball',sport:'NBA',league:'Eastern Conference',conference:'East',division:'Southeast',team:'Charlotte Hornets',position:'PG',posGroup:'G',nationality:'United States',age:24,tier:87,aliases:['Lamelo Ball']},
+      {id:'tyrese-haliburton',name:'Tyrese Haliburton',sport:'NBA',league:'Eastern Conference',conference:'East',division:'Central',team:'Indiana Pacers',position:'PG',posGroup:'G',nationality:'United States',age:25,tier:95},
+      {id:'pascal-siakam',name:'Pascal Siakam',sport:'NBA',league:'Eastern Conference',conference:'East',division:'Central',team:'Indiana Pacers',position:'PF',posGroup:'F',nationality:'Cameroon',age:31,tier:88},
+      {id:'lauri-markkanen',name:'Lauri Markkanen',sport:'NBA',league:'Western Conference',conference:'West',division:'Northwest',team:'Utah Jazz',position:'PF/SF',posGroup:'F',nationality:'Finland',age:28,tier:88},
+      {id:'kawhi-leonard',name:'Kawhi Leonard',sport:'NBA',league:'Western Conference',conference:'West',division:'Pacific',team:'Los Angeles Clippers',position:'SF',posGroup:'F',nationality:'United States',age:34,tier:90},
+      {id:'james-harden',name:'James Harden',sport:'NBA',league:'Western Conference',conference:'West',division:'Pacific',team:'Los Angeles Clippers',position:'PG/SG',posGroup:'G',nationality:'United States',age:36,tier:88},
+      {id:'scoot-henderson',name:'Scoot Henderson',sport:'NBA',league:'Western Conference',conference:'West',division:'Northwest',team:'Portland Trail Blazers',position:'PG',posGroup:'G',nationality:'United States',age:22,tier:82},
+
+      // Premier League v8 additions
+      {id:'alisson',name:'Alisson Becker',sport:'Premier League',league:'Premier League',conference:'England',division:'Premier League',team:'Liverpool',position:'GK',posGroup:'GK',nationality:'Brazil',age:33,tier:90,aliases:['Alisson']},
+      {id:'darwin-nunez',name:'Darwin Núñez',sport:'Premier League',league:'Premier League',conference:'England',division:'Premier League',team:'Liverpool',position:'ST/LW',posGroup:'ATT',nationality:'Uruguay',age:26,tier:86,aliases:['Darwin Nunez']},
+      {id:'rodri',name:'Rodri',sport:'Premier League',league:'Premier League',conference:'England',division:'Premier League',team:'Manchester City',position:'DM',posGroup:'MID',nationality:'Spain',age:29,tier:96},
+      {id:'ruben-dias',name:'Rúben Dias',sport:'Premier League',league:'Premier League',conference:'England',division:'Premier League',team:'Manchester City',position:'CB',posGroup:'DEF',nationality:'Portugal',age:28,tier:91,aliases:['Ruben Dias']},
+      {id:'bernardo-silva',name:'Bernardo Silva',sport:'Premier League',league:'Premier League',conference:'England',division:'Premier League',team:'Manchester City',position:'AM/RW',posGroup:'MID',nationality:'Portugal',age:31,tier:90},      {id:'william-saliba',name:'William Saliba',sport:'Premier League',league:'Premier League',conference:'England',division:'Premier League',team:'Arsenal',position:'CB',posGroup:'DEF',nationality:'France',age:25,tier:91},
+      {id:'gabriel-magalhaes',name:'Gabriel Magalhães',sport:'Premier League',league:'Premier League',conference:'England',division:'Premier League',team:'Arsenal',position:'CB',posGroup:'DEF',nationality:'Brazil',age:28,tier:89,aliases:['Gabriel Magalhaes']},
+      {id:'kai-havertz',name:'Kai Havertz',sport:'Premier League',league:'Premier League',conference:'England',division:'Premier League',team:'Arsenal',position:'ST/AM',posGroup:'ATT',nationality:'Germany',age:26,tier:87},
+      {id:'enzo-fernandez',name:'Enzo Fernández',sport:'Premier League',league:'Premier League',conference:'England',division:'Premier League',team:'Chelsea',position:'CM',posGroup:'MID',nationality:'Argentina',age:25,tier:88,aliases:['Enzo Fernandez']},
+      {id:'moises-caicedo',name:'Moisés Caicedo',sport:'Premier League',league:'Premier League',conference:'England',division:'Premier League',team:'Chelsea',position:'DM/CM',posGroup:'MID',nationality:'Ecuador',age:24,tier:87,aliases:['Moises Caicedo']},
+      {id:'recruit-gyokeres',name:'Viktor Gyökeres',sport:'Premier League',league:'Premier League',conference:'England',division:'Premier League',team:'Arsenal',position:'ST',posGroup:'ATT',nationality:'Sweden',age:27,tier:90,aliases:['Viktor Gyokeres']},      {id:'kobbie-mainoo',name:'Kobbie Mainoo',sport:'Premier League',league:'Premier League',conference:'England',division:'Premier League',team:'Manchester United',position:'CM',posGroup:'MID',nationality:'England',age:20,tier:84},
+      {id:'matheus-cunha',name:'Matheus Cunha',sport:'Premier League',league:'Premier League',conference:'England',division:'Premier League',team:'Manchester United',position:'ST/AM',posGroup:'ATT',nationality:'Brazil',age:26,tier:86},
+      {id:'morgan-rogers',name:'Morgan Rogers',sport:'Premier League',league:'Premier League',conference:'England',division:'Premier League',team:'Aston Villa',position:'AM/LW',posGroup:'MID',nationality:'England',age:23,tier:84},
+      {id:'emiliano-martinez',name:'Emiliano Martínez',sport:'Premier League',league:'Premier League',conference:'England',division:'Premier League',team:'Aston Villa',position:'GK',posGroup:'GK',nationality:'Argentina',age:33,tier:88,aliases:['Emiliano Martinez','Dibu Martinez']},
+      {id:'dominic-solanke',name:'Dominic Solanke',sport:'Premier League',league:'Premier League',conference:'England',division:'Premier League',team:'Tottenham Hotspur',position:'ST',posGroup:'ATT',nationality:'England',age:28,tier:86},
+      {id:'micky-van-de-ven',name:'Micky van de Ven',sport:'Premier League',league:'Premier League',conference:'England',division:'Premier League',team:'Tottenham Hotspur',position:'CB',posGroup:'DEF',nationality:'Netherlands',age:25,tier:84},
+      {id:'anthony-gordon',name:'Anthony Gordon',sport:'Premier League',league:'Premier League',conference:'England',division:'Premier League',team:'Newcastle United',position:'LW/RW',posGroup:'ATT',nationality:'England',age:24,tier:87},
+      {id:'sandro-tonali',name:'Sandro Tonali',sport:'Premier League',league:'Premier League',conference:'England',division:'Premier League',team:'Newcastle United',position:'CM/DM',posGroup:'MID',nationality:'Italy',age:25,tier:86},
+      {id:'matheus-nunes',name:'Matheus Nunes',sport:'Premier League',league:'Premier League',conference:'England',division:'Premier League',team:'Manchester City',position:'CM/RB',posGroup:'MID',nationality:'Portugal',age:27,tier:83},
+      {id:'eberechi-eze',name:'Eberechi Eze',sport:'Premier League',league:'Premier League',conference:'England',division:'Premier League',team:'Crystal Palace',position:'AM/LW',posGroup:'MID',nationality:'England',age:27,tier:88},
+      {id:'jean-philippe-mateta',name:'Jean-Philippe Mateta',sport:'Premier League',league:'Premier League',conference:'England',division:'Premier League',team:'Crystal Palace',position:'ST',posGroup:'ATT',nationality:'France',age:28,tier:84},
+      {id:'morgan-gibbs-white',name:'Morgan Gibbs-White',sport:'Premier League',league:'Premier League',conference:'England',division:'Premier League',team:'Nottingham Forest',position:'AM',posGroup:'MID',nationality:'England',age:26,tier:86},
+      {id:'chris-wood',name:'Chris Wood',sport:'Premier League',league:'Premier League',conference:'England',division:'Premier League',team:'Nottingham Forest',position:'ST',posGroup:'ATT',nationality:'New Zealand',age:34,tier:83},
+      {id:'antoine-semenyo',name:'Antoine Semenyo',sport:'Premier League',league:'Premier League',conference:'England',division:'Premier League',team:'Bournemouth',position:'RW/ST',posGroup:'ATT',nationality:'Ghana',age:26,tier:83},
+      {id:'milos-kerkez',name:'Miloš Kerkez',sport:'Premier League',league:'Premier League',conference:'England',division:'Premier League',team:'Liverpool',position:'LB',posGroup:'DEF',nationality:'Hungary',age:22,tier:84,aliases:['Milos Kerkez']},
+      {id:'yoane-wissa',name:'Yoane Wissa',sport:'Premier League',league:'Premier League',conference:'England',division:'Premier League',team:'Brentford',position:'ST/LW',posGroup:'ATT',nationality:'DR Congo',age:29,tier:83},
+      {id:'bryan-mbeumo',name:'Bryan Mbeumo',sport:'Premier League',league:'Premier League',conference:'England',division:'Premier League',team:'Manchester United',position:'RW/ST',posGroup:'ATT',nationality:'Cameroon',age:26,tier:88},
+
+      // PGA v8 additions
+      {id:'patrick-cantlay',name:'Patrick Cantlay',sport:'PGA',league:'PGA Tour',conference:'Golf',division:'PGA Tour',team:'Individual',position:'Golfer',posGroup:'GOLF',nationality:'United States',age:33,tier:89},
+      {id:'wyndham-clark',name:'Wyndham Clark',sport:'PGA',league:'PGA Tour',conference:'Golf',division:'PGA Tour',team:'Individual',position:'Golfer',posGroup:'GOLF',nationality:'United States',age:32,tier:88},
+      {id:'sam-burns',name:'Sam Burns',sport:'PGA',league:'PGA Tour',conference:'Golf',division:'PGA Tour',team:'Individual',position:'Golfer',posGroup:'GOLF',nationality:'United States',age:29,tier:85},
+      {id:'keegan-bradley',name:'Keegan Bradley',sport:'PGA',league:'PGA Tour',conference:'Golf',division:'PGA Tour',team:'Individual',position:'Golfer',posGroup:'GOLF',nationality:'United States',age:39,tier:84},
+      {id:'sahith-theegala',name:'Sahith Theegala',sport:'PGA',league:'PGA Tour',conference:'Golf',division:'PGA Tour',team:'Individual',position:'Golfer',posGroup:'GOLF',nationality:'United States',age:28,tier:85},
+      {id:'rickie-fowler',name:'Rickie Fowler',sport:'PGA',league:'PGA Tour',conference:'Golf',division:'PGA Tour',team:'Individual',position:'Golfer',posGroup:'GOLF',nationality:'United States',age:37,tier:84},
+      {id:'cameron-smith',name:'Cameron Smith',sport:'PGA',league:'LIV Golf',conference:'Golf',division:'LIV Golf',team:'Individual',position:'Golfer',posGroup:'GOLF',nationality:'Australia',age:32,tier:90},
+      {id:'joaquin-niemann',name:'Joaquin Niemann',sport:'PGA',league:'LIV Golf',conference:'Golf',division:'LIV Golf',team:'Individual',position:'Golfer',posGroup:'GOLF',nationality:'Chile',age:27,tier:89},
+      {id:'tyrrell-hatton',name:'Tyrrell Hatton',sport:'PGA',league:'LIV Golf',conference:'Golf',division:'LIV Golf',team:'Individual',position:'Golfer',posGroup:'GOLF',nationality:'England',age:34,tier:88},
+      {id:'min-woo-lee',name:'Min Woo Lee',sport:'PGA',league:'PGA Tour',conference:'Golf',division:'PGA Tour',team:'Individual',position:'Golfer',posGroup:'GOLF',nationality:'Australia',age:27,tier:86},
+      {id:'shane-lowry',name:'Shane Lowry',sport:'PGA',league:'PGA Tour',conference:'Golf',division:'PGA Tour',team:'Individual',position:'Golfer',posGroup:'GOLF',nationality:'Ireland',age:39,tier:86},
+      {id:'matt-fitzpatrick',name:'Matt Fitzpatrick',sport:'PGA',league:'PGA Tour',conference:'Golf',division:'PGA Tour',team:'Individual',position:'Golfer',posGroup:'GOLF',nationality:'England',age:31,tier:87},
+      {id:'justin-rose',name:'Justin Rose',sport:'PGA',league:'PGA Tour',conference:'Golf',division:'PGA Tour',team:'Individual',position:'Golfer',posGroup:'GOLF',nationality:'England',age:45,tier:85},
+      {id:'adam-scott',name:'Adam Scott',sport:'PGA',league:'PGA Tour',conference:'Golf',division:'PGA Tour',team:'Individual',position:'Golfer',posGroup:'GOLF',nationality:'Australia',age:45,tier:84},
+      {id:'will-zalatoris',name:'Will Zalatoris',sport:'PGA',league:'PGA Tour',conference:'Golf',division:'PGA Tour',team:'Individual',position:'Golfer',posGroup:'GOLF',nationality:'United States',age:29,tier:84},
+      {id:'brian-harman',name:'Brian Harman',sport:'PGA',league:'PGA Tour',conference:'Golf',division:'PGA Tour',team:'Individual',position:'Golfer',posGroup:'GOLF',nationality:'United States',age:39,tier:84}
+,
+
+      // v15 MLB expansion
+      {id:'clayton-kershaw',name:'Clayton Kershaw',sport:'MLB',league:'National League',conference:'NL',division:'NL West',team:'Los Angeles Dodgers',position:'SP',posGroup:'P',nationality:'United States',age:38,tier:88},
+      {id:'will-smith-mlb',name:'Will Smith',sport:'MLB',league:'National League',conference:'NL',division:'NL West',team:'Los Angeles Dodgers',position:'C',posGroup:'C',nationality:'United States',age:31,tier:86,aliases:['Will Smith Dodgers']},
+      {id:'teoscar-hernandez',name:'Teoscar Hernández',sport:'MLB',league:'National League',conference:'NL',division:'NL West',team:'Los Angeles Dodgers',position:'OF',posGroup:'OF',nationality:'Dominican Republic',age:33,tier:85,aliases:['Teoscar Hernandez']},
+      {id:'xander-bogaerts',name:'Xander Bogaerts',sport:'MLB',league:'National League',conference:'NL',division:'NL West',team:'San Diego Padres',position:'SS/2B',posGroup:'INF',nationality:'Aruba',age:33,tier:84},
+      {id:'luis-arraez',name:'Luis Arraez',sport:'MLB',league:'National League',conference:'NL',division:'NL West',team:'San Diego Padres',position:'1B/2B',posGroup:'INF',nationality:'Venezuela',age:28,tier:86},
+      {id:'chris-sale',name:'Chris Sale',sport:'MLB',league:'National League',conference:'NL',division:'NL East',team:'Atlanta Braves',position:'SP',posGroup:'P',nationality:'United States',age:37,tier:88},
+      {id:'austin-riley',name:'Austin Riley',sport:'MLB',league:'National League',conference:'NL',division:'NL East',team:'Atlanta Braves',position:'3B',posGroup:'INF',nationality:'United States',age:29,tier:89},
+      {id:'matt-olson',name:'Matt Olson',sport:'MLB',league:'National League',conference:'NL',division:'NL East',team:'Atlanta Braves',position:'1B',posGroup:'INF',nationality:'United States',age:32,tier:88},
+      {id:'ozzie-albies',name:'Ozzie Albies',sport:'MLB',league:'National League',conference:'NL',division:'NL East',team:'Atlanta Braves',position:'2B',posGroup:'INF',nationality:'Curacao',age:29,tier:86},
+      {id:'trea-turner',name:'Trea Turner',sport:'MLB',league:'National League',conference:'NL',division:'NL East',team:'Philadelphia Phillies',position:'SS',posGroup:'INF',nationality:'United States',age:33,tier:90},
+      {id:'kyle-schwarber',name:'Kyle Schwarber',sport:'MLB',league:'National League',conference:'NL',division:'NL East',team:'Philadelphia Phillies',position:'DH/OF',posGroup:'OF',nationality:'United States',age:33,tier:87},
+      {id:'jazz-chisholm-jr',name:'Jazz Chisholm Jr.',sport:'MLB',league:'American League',conference:'AL',division:'AL East',team:'New York Yankees',position:'3B/OF',posGroup:'INF',nationality:'Bahamas',age:28,tier:86,aliases:['Jazz Chisholm']},
+      {id:'cody-bellinger',name:'Cody Bellinger',sport:'MLB',league:'American League',conference:'AL',division:'AL East',team:'New York Yankees',position:'OF/1B',posGroup:'OF',nationality:'United States',age:30,tier:85},
+      {id:'dylan-cease',name:'Dylan Cease',sport:'MLB',league:'National League',conference:'NL',division:'NL West',team:'San Diego Padres',position:'SP',posGroup:'P',nationality:'United States',age:30,tier:87},
+      {id:'luis-castillo',name:'Luis Castillo',sport:'MLB',league:'American League',conference:'AL',division:'AL West',team:'Seattle Mariners',position:'SP',posGroup:'P',nationality:'Dominican Republic',age:33,tier:87},
+      {id:'george-kirby',name:'George Kirby',sport:'MLB',league:'American League',conference:'AL',division:'AL West',team:'Seattle Mariners',position:'SP',posGroup:'P',nationality:'United States',age:28,tier:86},
+      {id:'framber-valdez',name:'Framber Valdez',sport:'MLB',league:'American League',conference:'AL',division:'AL West',team:'Houston Astros',position:'SP',posGroup:'P',nationality:'Dominican Republic',age:32,tier:87},
+      {id:'isaac-paredes',name:'Isaac Paredes',sport:'MLB',league:'American League',conference:'AL',division:'AL West',team:'Houston Astros',position:'3B/1B',posGroup:'INF',nationality:'Mexico',age:27,tier:84},
+      {id:'wyatt-langford',name:'Wyatt Langford',sport:'MLB',league:'American League',conference:'AL',division:'AL West',team:'Texas Rangers',position:'OF',posGroup:'OF',nationality:'United States',age:24,tier:84},
+      {id:'royce-lewis',name:'Royce Lewis',sport:'MLB',league:'American League',conference:'AL',division:'AL Central',team:'Minnesota Twins',position:'3B/SS',posGroup:'INF',nationality:'United States',age:27,tier:85},
+      {id:'emmanuel-clase',name:'Emmanuel Clase',sport:'MLB',league:'American League',conference:'AL',division:'AL Central',team:'Cleveland Guardians',position:'RP',posGroup:'P',nationality:'Dominican Republic',age:28,tier:87},
+
+      // v15 NFL expansion
+      {id:'rashee-rice',name:'Rashee Rice',sport:'NFL',league:'AFC',conference:'AFC',division:'AFC West',team:'Kansas City Chiefs',position:'WR',posGroup:'SKILL',nationality:'United States',age:25,tier:84},
+      {id:'jahmyr-gibbs',name:'Jahmyr Gibbs',sport:'NFL',league:'NFC',conference:'NFC',division:'NFC North',team:'Detroit Lions',position:'RB',posGroup:'SKILL',nationality:'United States',age:24,tier:91,aliases:['Jahmir Gibbs']},
+      {id:'aiden-hutchinson',name:'Aidan Hutchinson',sport:'NFL',league:'NFC',conference:'NFC',division:'NFC North',team:'Detroit Lions',position:'EDGE',posGroup:'DEF',nationality:'United States',age:26,tier:93,aliases:['Aidan Hutchinson']},
+      {id:'jaxon-smith-njigba',name:'Jaxon Smith-Njigba',sport:'NFL',league:'NFC',conference:'NFC',division:'NFC West',team:'Seattle Seahawks',position:'WR',posGroup:'SKILL',nationality:'United States',age:24,tier:86,aliases:['JSN']},
+      {id:'jonathan-taylor',name:'Jonathan Taylor',sport:'NFL',league:'AFC',conference:'AFC',division:'AFC South',team:'Indianapolis Colts',position:'RB',posGroup:'SKILL',nationality:'United States',age:27,tier:89},
+      {id:'josh-jacobs',name:'Josh Jacobs',sport:'NFL',league:'NFC',conference:'NFC',division:'NFC North',team:'Green Bay Packers',position:'RB',posGroup:'SKILL',nationality:'United States',age:28,tier:89},
+      {id:'brandon-aiyuk',name:'Brandon Aiyuk',sport:'NFL',league:'NFC',conference:'NFC',division:'NFC West',team:'San Francisco 49ers',position:'WR',posGroup:'SKILL',nationality:'United States',age:28,tier:88},
+      {id:'fred-warner',name:'Fred Warner',sport:'NFL',league:'NFC',conference:'NFC',division:'NFC West',team:'San Francisco 49ers',position:'LB',posGroup:'DEF',nationality:'United States',age:29,tier:92},
+      {id:'maxx-crosby',name:'Maxx Crosby',sport:'NFL',league:'AFC',conference:'AFC',division:'AFC West',team:'Las Vegas Raiders',position:'EDGE',posGroup:'DEF',nationality:'United States',age:29,tier:94},
+
+      // v15 NBA expansion
+      {id:'darius-garland',name:'Darius Garland',sport:'NBA',league:'Eastern Conference',conference:'East',division:'Central',team:'Cleveland Cavaliers',position:'PG',posGroup:'G',nationality:'United States',age:26,tier:87},
+      {id:'jarrett-allen',name:'Jarrett Allen',sport:'NBA',league:'Eastern Conference',conference:'East',division:'Central',team:'Cleveland Cavaliers',position:'C',posGroup:'C',nationality:'United States',age:27,tier:86},
+      {id:'karl-anthony-towns',name:'Karl-Anthony Towns',sport:'NBA',league:'Eastern Conference',conference:'East',division:'Atlantic',team:'New York Knicks',position:'C/PF',posGroup:'C',nationality:'Dominican Republic',age:30,tier:91,aliases:['KAT']},
+      {id:'mikal-bridges',name:'Mikal Bridges',sport:'NBA',league:'Eastern Conference',conference:'East',division:'Atlantic',team:'New York Knicks',position:'SF/SG',posGroup:'F',nationality:'United States',age:29,tier:86},
+      {id:'derrick-white',name:'Derrick White',sport:'NBA',league:'Eastern Conference',conference:'East',division:'Atlantic',team:'Boston Celtics',position:'PG/SG',posGroup:'G',nationality:'United States',age:31,tier:86},
+      {id:'domantas-sabonis',name:'Domantas Sabonis',sport:'NBA',league:'Western Conference',conference:'West',division:'Pacific',team:'Sacramento Kings',position:'C/PF',posGroup:'C',nationality:'Lithuania',age:29,tier:90},
+      {id:'deaaron-fox',name:'De’Aaron Fox',sport:'NBA',league:'Western Conference',conference:'West',division:'Southwest',team:'San Antonio Spurs',position:'PG',posGroup:'G',nationality:'United States',age:28,tier:91,aliases:['DeAaron Fox']},
+      {id:'alperen-sengun',name:'Alperen Şengün',sport:'NBA',league:'Western Conference',conference:'West',division:'Southwest',team:'Houston Rockets',position:'C',posGroup:'C',nationality:'Turkey',age:23,tier:90,aliases:['Alperen Sengun']},
+      {id:'franz-wagner',name:'Franz Wagner',sport:'NBA',league:'Eastern Conference',conference:'East',division:'Southeast',team:'Orlando Magic',position:'SF/PF',posGroup:'F',nationality:'Germany',age:24,tier:88},
+      {id:'cooper-flagg',name:'Cooper Flagg',sport:'NBA',league:'Western Conference',conference:'West',division:'Southwest',team:'Dallas Mavericks',position:'SF/PF',posGroup:'F',nationality:'United States',age:19,tier:89},
+
+      // v15 Premier League expansion
+      {id:'alexis-mac-allister',name:'Alexis Mac Allister',sport:'Premier League',league:'Premier League',conference:'England',division:'Premier League',team:'Liverpool',position:'CM/DM',posGroup:'MID',nationality:'Argentina',age:27,tier:89},
+      {id:'dominik-szoboszlai',name:'Dominik Szoboszlai',sport:'Premier League',league:'Premier League',conference:'England',division:'Premier League',team:'Liverpool',position:'AM/CM',posGroup:'MID',nationality:'Hungary',age:25,tier:88},
+      {id:'ryan-gravenberch',name:'Ryan Gravenberch',sport:'Premier League',league:'Premier League',conference:'England',division:'Premier League',team:'Liverpool',position:'CM/DM',posGroup:'MID',nationality:'Netherlands',age:23,tier:86},
+      {id:'jeremie-frimpong',name:'Jeremie Frimpong',sport:'Premier League',league:'Premier League',conference:'England',division:'Premier League',team:'Liverpool',position:'RB/RWB',posGroup:'DEF',nationality:'Netherlands',age:25,tier:87},
+      {id:'lisandro-martinez',name:'Lisandro Martínez',sport:'Premier League',league:'Premier League',conference:'England',division:'Premier League',team:'Manchester United',position:'CB',posGroup:'DEF',nationality:'Argentina',age:28,tier:86,aliases:['Lisandro Martinez']},
+      {id:'leny-yoro',name:'Leny Yoro',sport:'Premier League',league:'Premier League',conference:'England',division:'Premier League',team:'Manchester United',position:'CB',posGroup:'DEF',nationality:'France',age:20,tier:83},
+      {id:'amad-diallo',name:'Amad Diallo',sport:'Premier League',league:'Premier League',conference:'England',division:'Premier League',team:'Manchester United',position:'RW/AM',posGroup:'ATT',nationality:'Ivory Coast',age:23,tier:83},
+      {id:'pedro-neto',name:'Pedro Neto',sport:'Premier League',league:'Premier League',conference:'England',division:'Premier League',team:'Chelsea',position:'LW/RW',posGroup:'ATT',nationality:'Portugal',age:25,tier:84},
+      {id:'nicolas-jackson',name:'Nicolas Jackson',sport:'Premier League',league:'Premier League',conference:'England',division:'Premier League',team:'Chelsea',position:'ST',posGroup:'ATT',nationality:'Senegal',age:24,tier:84},
+      {id:'levi-colwill',name:'Levi Colwill',sport:'Premier League',league:'Premier League',conference:'England',division:'Premier League',team:'Chelsea',position:'CB',posGroup:'DEF',nationality:'England',age:22,tier:83},
+      {id:'jurrien-timber',name:'Jurrien Timber',sport:'Premier League',league:'Premier League',conference:'England',division:'Premier League',team:'Arsenal',position:'RB/CB',posGroup:'DEF',nationality:'Netherlands',age:24,tier:85},
+      {id:'david-raya',name:'David Raya',sport:'Premier League',league:'Premier League',conference:'England',division:'Premier League',team:'Arsenal',position:'GK',posGroup:'GK',nationality:'Spain',age:30,tier:86},
+
+      // v15 PGA expansion
+      {id:'tom-kim',name:'Tom Kim',sport:'PGA',league:'PGA Tour',conference:'Golf',division:'PGA Tour',team:'Individual',position:'Golfer',posGroup:'GOLF',nationality:'South Korea',age:23,tier:85},
+      {id:'jason-day',name:'Jason Day',sport:'PGA',league:'PGA Tour',conference:'Golf',division:'PGA Tour',team:'Individual',position:'Golfer',posGroup:'GOLF',nationality:'Australia',age:38,tier:85},
+      {id:'sepp-straka',name:'Sepp Straka',sport:'PGA',league:'PGA Tour',conference:'Golf',division:'PGA Tour',team:'Individual',position:'Golfer',posGroup:'GOLF',nationality:'Austria',age:32,tier:84},
+      {id:'russell-henley',name:'Russell Henley',sport:'PGA',league:'PGA Tour',conference:'Golf',division:'PGA Tour',team:'Individual',position:'Golfer',posGroup:'GOLF',nationality:'United States',age:36,tier:84},
+      {id:'corey-conners',name:'Corey Conners',sport:'PGA',league:'PGA Tour',conference:'Golf',division:'PGA Tour',team:'Individual',position:'Golfer',posGroup:'GOLF',nationality:'Canada',age:34,tier:84},
+      {id:'cameron-young',name:'Cameron Young',sport:'PGA',league:'PGA Tour',conference:'Golf',division:'PGA Tour',team:'Individual',position:'Golfer',posGroup:'GOLF',nationality:'United States',age:28,tier:84},
+      {id:'dustin-johnson',name:'Dustin Johnson',sport:'PGA',league:'LIV Golf',conference:'Golf',division:'LIV Golf',team:'Individual',position:'Golfer',posGroup:'GOLF',nationality:'United States',age:41,tier:86}
+
+    ];
+
+    players.forEach(p => {
+      p.aliases = p.aliases || [];
+      if (p.name.includes(' Jr.')) {
+        const noPeriod = p.name.replace(' Jr.', ' Jr');
+        const noJr = p.name.replace(' Jr.', '');
+        if (!p.aliases.includes(noPeriod)) p.aliases.push(noPeriod);
+        if (!p.aliases.includes(noJr)) p.aliases.push(noJr);
+      }
+    });
+
+    const byId = Object.fromEntries(players.map(p => [p.id, p]));
+    const input = document.getElementById('searchInput');
+    const suggestionsEl = document.getElementById('suggestions');
+    const guessBtn = document.getElementById('guessBtn');
+    const guessList = document.getElementById('guessList');
+    const statusEl = document.getElementById('status');
+    const guessCountEl = document.getElementById('guessCount');
+    const timerEl = document.getElementById('timer');
+    const clueMini = document.getElementById('clueMini');
+    const puzzleMini = document.getElementById('puzzleMini');
+
+    const DAILY_EPOCH = new Date(2026, 0, 1);
+    let mode = 'daily';
+    let puzzleNumber = getPuzzleNumber();
+
+    function getDateKey(date = new Date()) {
+      return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+    }
+
+    function getPuzzleNumber(date = new Date()) {
+      const today = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+      return Math.floor((today - DAILY_EPOCH) / 86400000) + 1;
+    }
+
+    function seededIndex(seedText, max) {
+      let hash = 2166136261;
+      for (let i = 0; i < seedText.length; i++) {
+        hash ^= seedText.charCodeAt(i);
+        hash = Math.imul(hash, 16777619);
+      }
+      return Math.abs(hash >>> 0) % max;
+    }
+
+    const ANSWER_TIER_MIN = {
+      MLB: 86,
+      NFL: 86,
+      NBA: 86,
+      'Premier League': 86,
+      PGA: 84
+    };
+
+    function isAnswerEligible(p) {
+      // All players can be guessed, but only recognizable players should become
+      // the daily/practice answer. Later, we can override specific players with
+      // answerEligible: true/false when we add full starter pools.
+      if (p.answerEligible === false) return false;
+      if (p.answerEligible === true) return true;
+      return p.tier >= (ANSWER_TIER_MIN[p.sport] || 86);
+    }
+
+    function answerPool() {
+      return players.filter(isAnswerEligible);
+    }
+
+    function dailyTarget() {
+      const pool = answerPool();
+      return pool[seededIndex(`hot-ice-${getDateKey()}`, pool.length)];
+    }
+
+    let target = dailyTarget();
+    let guesses = [];
+    let clueCount = 0;
+    let clueValues = {};
+    let startTime = Date.now();
+    let solved = false;
+    let revealedAnswer = false;
+    let selectedSuggestionIndex = -1;
+    let currentSuggestions = [];
+
+    function normalize(str) {
+      return (str || '')
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9\s]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+    }
+
+    function allSearchTerms(p) {
+      return [p.name, ...(p.aliases || [])].map(normalize);
+    }
+
+    function formatTime(seconds) {
+      const m = Math.floor(seconds / 60);
+      const s = seconds % 60;
+      return `${m}:${String(s).padStart(2, '0')}`;
+    }
+
+    setInterval(() => {
+      if (!solved) {
+        const sec = Math.floor((Date.now() - startTime) / 1000);
+        timerEl.textContent = `⏱ ${formatTime(sec)}`;
+      }
+    }, 500);
+
+    function sportIcon(sport) {
+      if (sport === 'MLB') return '⚾';
+      if (sport === 'NFL') return '🏈';
+      if (sport === 'NBA') return '🏀';
+      if (sport === 'Premier League') return '⚽';
+      if (sport === 'PGA') return '⛳';
+      return '⭐';
+    }
+
+    const SIM_WEIGHTS = {
+      sameSport: 330,
+      sameLeague: 115,
+      sameConference: 85,
+      sameDivision: 175,
+      sameTeam: 355,
+      samePosition: 110,
+      samePositionGroup: 82,
+      sameNationality: 65,
+      sameNationalityGroup: 30,
+      ageBase: 36,
+      agePenalty: 4,
+      crossSportNationalityBonus: 8
+    };
+
+    const SPORT_TUNING = {
+      // Nationality is now intentionally above age/fame as a real clue,
+      // but still below team/division/position.
+      MLB: { sameDivision: 190, sameTeam: 380, samePositionGroup: 86, samePosition: 112, sameNationality: 85, sameNationalityGroup: 35 },
+      NFL: { sameDivision: 205, sameTeam: 390, samePositionGroup: 95, samePosition: 125, sameNationality: 20, sameNationalityGroup: 0 },
+      NBA: { sameDivision: 160, sameTeam: 390, samePositionGroup: 95, samePosition: 115, sameNationality: 70, sameNationalityGroup: 35 },
+      'Premier League': { sameDivision: 0, sameTeam: 420, samePositionGroup: 112, samePosition: 125, sameNationality: 85, sameNationalityGroup: 30 },
+      PGA: { sameDivision: 130, sameTeam: 0, samePositionGroup: 0, samePosition: 0, sameNationality: 100, sameNationalityGroup: 85 }
+    };
+
+    function weightFor(player, key) {
+      return (SPORT_TUNING[player.sport] && SPORT_TUNING[player.sport][key] !== undefined)
+        ? SPORT_TUNING[player.sport][key]
+        : SIM_WEIGHTS[key];
+    }
+
+    function nationalityGroup(player) {
+      // Broad clue bucket used below exact nationality.
+      // This is especially useful for PGA/NBA/MLB where "international vs US"
+      // should matter more than age/fame, but less than exact country.
+      return player.nationality === 'United States' ? 'United States' : 'International';
+    }
+
+    function sportDistanceScore(a, b) {
+      // Wrong-sport guesses should still rank uniquely, but they must stay in
+      // a cold bucket. These are intentionally tiny tie-breakers compared with
+      // any same-sport score.
+      const affinity = {
+        MLB: { NFL: 30, NBA: 30, 'Premier League': 20, PGA: 10 },
+        NFL: { NBA: 30, MLB: 30, 'Premier League': 20, PGA: 10 },
+        NBA: { NFL: 30, MLB: 30, 'Premier League': 20, PGA: 10 },
+        'Premier League': { MLB: 20, NFL: 20, NBA: 20, PGA: 10 },
+        PGA: { MLB: 10, NFL: 10, NBA: 10, 'Premier League': 10 }
+      };
+
+      let score = affinity[b.sport]?.[a.sport] ?? 0;
+
+      // Soft wrong-sport ordering:
+      // These signals should only sort the cold bucket. They should not make
+      // Baker Mayfield look meaningfully "hotter" than Patrick Mahomes for a golfer.
+      // Age can still nudge Luka over LeBron for José, but the effect is compressed.
+      const ageDiff = Math.abs(a.age - b.age);
+
+      score += Math.max(0, 8 - ageDiff); // small age nudge
+
+      if (a.nationality === b.nationality) score += 5;
+      else if (nationalityGroup(a) === nationalityGroup(b)) score += 2;
+
+      // Tiny deterministic decimal tie-breaker keeps ranks unique without
+      // creating visible fake precision.
+      const idSalt = [...a.id].reduce((sum, ch) => sum + ch.charCodeAt(0), 0) % 100;
+      score += idSalt / 1000;
+
+      return score;
+    }
+
+    function similarity(a, b) {
+      if (a.id === b.id) return 10000;
+
+      // First gate: sport. Wrong-sport guesses stay cold.
+      // Once the sport matches, the engine uses team/division/position plus
+      // softer clues like age, nationality, and star tier to guide progress.
+      if (a.sport !== b.sport) return sportDistanceScore(a, b);
+
+      let score = 0;
+
+      score += SIM_WEIGHTS.sameSport;
+      if (a.league === b.league) score += SIM_WEIGHTS.sameLeague;
+      if (a.conference === b.conference) score += SIM_WEIGHTS.sameConference;
+      if (a.division === b.division) score += weightFor(b, 'sameDivision');
+      if (a.team === b.team && a.team !== 'Individual') score += weightFor(b, 'sameTeam');
+
+      if (a.position === b.position) score += weightFor(b, 'samePosition');
+      else if (a.posGroup === b.posGroup) score += weightFor(b, 'samePositionGroup');
+
+      if (a.nationality === b.nationality) {
+        score += weightFor(b, 'sameNationality');
+      } else if (nationalityGroup(a) === nationalityGroup(b)) {
+        score += weightFor(b, 'sameNationalityGroup');
+      }
+
+      const ageDiff = Math.abs(a.age - b.age);
+      score += Math.max(0, SIM_WEIGHTS.ageBase - ageDiff * SIM_WEIGHTS.agePenalty);
+
+      return Math.round(score);
+    }
+
+    function rankedAgainstTarget(p) {
+      const ranked = players
+        .map(x => ({ id: x.id, score: similarity(x, target) }))
+        .sort((a, b) => b.score - a.score || a.id.localeCompare(b.id));
+      const idx = ranked.findIndex(x => x.id === p.id);
+      return { rank: idx + 1, score: ranked[idx].score };
+    }
+
+    function isMeaningfulDivisionMatch(a, b) {
+      if (a.sport !== b.sport) return false;
+
+      // MLB/NFL/NBA have useful divisions. Premier League is one league/division,
+      // so division would make every PL player double-fire, which is too revealing/noisy.
+      if (['MLB', 'NFL', 'NBA'].includes(a.sport)) {
+        return a.division && a.division === b.division;
+      }
+
+      // PGA: use tour/league as the closest equivalent.
+      if (a.sport === 'PGA') {
+        return a.league && a.league === b.league;
+      }
+
+      return false;
+    }
+
+    function heatFromPlayer(player, score, rank, exact) {
+      if (exact) return { emoji: '✅', cls: 'correct', color: '#28b463' };
+
+      const sameSport = player.sport === target.sport;
+      const sameTeam = player.team === target.team && player.team !== 'Individual';
+      const sameDivision = isMeaningfulDivisionMatch(player, target);
+
+      // Main product direction: simple Hot/Ice language.
+      // Right sport = 🔥. Right division/team = 🔥🔥. Exact = ✅.
+      if (sameTeam || sameDivision) return { emoji: '🔥🔥', cls: 'very-hot', color: '#ff3b2e' };
+      if (sameSport) return { emoji: '🔥', cls: 'fire', color: '#ff9417' };
+
+      // Wrong sport stays cold. The rank can still move within the cold bucket,
+      // but wrong-sport guesses should never look warm.
+      if (score >= 38) return { emoji: '❄️', cls: 'cold', color: '#56b8f6' };
+      return { emoji: '🥶', cls: 'freeze', color: '#2e7df4' };
+    }
+
+    function getMatches(query) {
+      const q = normalize(query);
+      if (!q) return [];
+      return players
+        .map(p => {
+          const terms = allSearchTerms(p);
+          const starts = terms.some(t => t.startsWith(q));
+          const includes = terms.some(t => t.includes(q));
+          let score = starts ? 0 : includes ? 1 : 99;
+          return { p, score };
+        })
+        .filter(x => x.score < 99)
+        .sort((a, b) => a.score - b.score || b.p.tier - a.p.tier || a.p.name.localeCompare(b.p.name))
+        .slice(0, 8)
+        .map(x => x.p);
+    }
+
+    function renderSuggestions() {
+      currentSuggestions = getMatches(input.value);
+      selectedSuggestionIndex = -1;
+      if (!currentSuggestions.length) {
+        suggestionsEl.classList.remove('show');
+        suggestionsEl.innerHTML = '';
+        return;
+      }
+      suggestionsEl.innerHTML = currentSuggestions.map((p, i) => `
+        <button class="suggestion" data-id="${p.id}" role="option">
+          <div><strong>${p.name}</strong><span>${sportIcon(p.sport)} ${p.sport} · ${p.team}${p.position ? ' · ' + p.position : ''}</span></div>
+        </button>
+      `).join('');
+      suggestionsEl.classList.add('show');
+    }
+
+    function setStatus(msg) { statusEl.textContent = msg; }
+
+
+    function clearClueButtons() {
+      clearClueButtons();
+    }
+
+    function setTuningTarget(player) {
+      mode = 'practice';
+      target = player;
+      guesses = [];
+      clueCount = 0;
+      clueValues = {};
+      startTime = Date.now();
+      solved = false;
+      revealedAnswer = false;
+      input.value = '';
+      suggestionsEl.classList.remove('show');
+      clearClueButtons();
+      document.querySelectorAll('.modal-backdrop').forEach(m => m.classList.remove('show'));
+      setStatus(`Tuning target set: ${player.name}. Now test guesses against this player.`);
+      renderGuesses();
+    }
+
+    function handleTuningCommand(raw) {
+      const text = raw.trim();
+      if (!text.startsWith('/target ')) return false;
+      const name = text.replace('/target ', '').trim();
+      const player = findExactOrBest(name);
+      if (!player) {
+        setStatus(`No player found for "${name}". Try another spelling.`);
+        return true;
+      }
+      setTuningTarget(player);
+      return true;
+    }
+
+    function renderGuesses() {
+      guessCountEl.textContent = guesses.length;
+      clueMini.textContent = `Clues: ${clueCount}`;
+      puzzleMini.textContent = mode === 'daily' ? `Daily #${puzzleNumber}` : 'Practice';
+      if (!guesses.length) {
+        guessList.innerHTML = '<div class="empty-state">Start with any athlete from NFL, MLB, NBA, Premier League, or PGA. The lower the rank, the closer you are.</div>';
+        return;
+      }
+      const rows = guesses
+        .map(g => ({...g, player: byId[g.id]}))
+        .sort((a, b) => a.rank - b.rank || b.score - a.score || a.player.name.localeCompare(b.player.name));
+      guessList.innerHTML = rows.map(g => {
+        const h = heatFromPlayer(g.player, g.score, g.rank, g.id === target.id);
+        return `
+          <article class="guess-row" style="animation-delay:${Math.min(g.rank, 8) * 12}ms">
+            <div class="row-main">
+              <div class="row-name">${g.player.name}</div>
+            </div>
+            <div class="row-emoji">${h.emoji}</div>
+            <div class="row-rank" style="color:${h.color}">#${g.rank}</div>
+          </article>
+        `;
+      }).join('');
+    }
+
+    function guessPlayer(player) {
+      if (solved) return;
+      if (!player) {
+        setStatus('Pick one of the player suggestions first.');
+        return;
+      }
+      if (guesses.some(g => g.id === player.id)) {
+        setStatus(`${player.name} was already guessed.`);
+        input.value = '';
+        suggestionsEl.classList.remove('show');
+        return;
+      }
+      const r = rankedAgainstTarget(player);
+      guesses.push({ id: player.id, rank: r.rank, score: r.score });
+      input.value = '';
+      suggestionsEl.classList.remove('show');
+      const h = heatFromPlayer(player, r.score, r.rank, player.id === target.id);
+      setStatus(`${player.name} ${h.emoji} #${r.rank}`);
+      renderGuesses();
+      if (player.id === target.id) win();
+    }
+
+    function findExactOrBest(query) {
+      const q = normalize(query);
+      if (!q) return null;
+      const exact = players.find(p => allSearchTerms(p).some(t => t === q));
+      if (exact) return exact;
+      return getMatches(query)[0] || null;
+    }
+
+    input.addEventListener('input', renderSuggestions);
+    input.addEventListener('focus', renderSuggestions);
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.search-wrap')) suggestionsEl.classList.remove('show');
+    });
+    suggestionsEl.addEventListener('click', (e) => {
+      const btn = e.target.closest('.suggestion');
+      if (!btn) return;
+      guessPlayer(byId[btn.dataset.id]);
+    });
+    guessBtn.addEventListener('click', () => {
+      if (handleTuningCommand(input.value)) return;
+      guessPlayer(findExactOrBest(input.value));
+    });
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        if (handleTuningCommand(input.value)) return;
+        if (selectedSuggestionIndex >= 0 && currentSuggestions[selectedSuggestionIndex]) guessPlayer(currentSuggestions[selectedSuggestionIndex]);
+        else guessPlayer(findExactOrBest(input.value));
+      }
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        selectedSuggestionIndex = Math.min(currentSuggestions.length - 1, selectedSuggestionIndex + 1);
+        paintActiveSuggestion();
+      }
+      if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        selectedSuggestionIndex = Math.max(0, selectedSuggestionIndex - 1);
+        paintActiveSuggestion();
+      }
+    });
+
+    function paintActiveSuggestion() {
+      [...suggestionsEl.querySelectorAll('.suggestion')].forEach((el, i) => el.classList.toggle('active', i === selectedSuggestionIndex));
+    }
+
+    document.getElementById('clueToggle').addEventListener('click', () => document.getElementById('cluePanel').classList.toggle('show'));
+    document.getElementById('cluePanel').addEventListener('click', (e) => {
+      const btn = e.target.closest('.clue-btn');
+      if (!btn) return;
+      const key = btn.dataset.clue;
+      if (!clueValues[key]) {
+        clueValues[key] = true;
+        clueCount++;
+      }
+      const value = key === 'sport' ? target.sport : key === 'league' ? target.league : key === 'position' ? target.position : target.team;
+      btn.textContent = `${key === 'team' ? 'Team/Club' : key[0].toUpperCase() + key.slice(1)}: ${value}`;
+      btn.classList.add('revealed');
+      renderGuesses();
+    });
+
+
+    function getStats() {
+      try {
+        return JSON.parse(localStorage.getItem('hotIceStats') || '{}');
+      } catch {
+        return {};
+      }
+    }
+
+    function saveStats(stats) {
+      localStorage.setItem('hotIceStats', JSON.stringify(stats));
+    }
+
+    function updateStats({ won = false, revealed = false, score = 0 } = {}) {
+      const stats = getStats();
+      const dateKey = getDateKey();
+      if (stats.lastRecordedDate === dateKey && mode === 'daily') return;
+
+      stats.played = (stats.played || 0) + 1;
+      if (won && !revealed) stats.wins = (stats.wins || 0) + 1;
+      if (revealed) stats.reveals = (stats.reveals || 0) + 1;
+
+      if (mode === 'daily') {
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        const yKey = yesterday.toISOString().slice(0, 10);
+
+        if (won && !revealed) {
+          stats.currentStreak = stats.lastWinDate === yKey ? (stats.currentStreak || 0) + 1 : 1;
+          stats.maxStreak = Math.max(stats.maxStreak || 0, stats.currentStreak || 0);
+          stats.lastWinDate = dateKey;
+        } else {
+          stats.currentStreak = 0;
+        }
+        stats.lastRecordedDate = dateKey;
+      }
+
+      stats.bestScore = Math.max(stats.bestScore || 0, score || 0);
+      saveStats(stats);
+    }
+
+    function renderStats() {
+      const stats = getStats();
+      document.getElementById('statPlayed').textContent = stats.played || 0;
+      document.getElementById('statWins').textContent = stats.wins || 0;
+      document.getElementById('statStreak').textContent = stats.currentStreak || 0;
+      document.getElementById('statMaxStreak').textContent = stats.maxStreak || 0;
+      document.getElementById('statBestScore').textContent = (stats.bestScore || 0).toLocaleString();
+      document.getElementById('statsModal').classList.add('show');
+    }
+
+    const REVEAL_SCORE = 250;
+
+    function computeScore() {
+      if (revealedAnswer) return REVEAL_SCORE;
+      const sec = Math.floor((Date.now() - startTime) / 1000);
+      const guessPenalty = Math.max(0, guesses.length - 1) * 260;
+      return Math.max(0, 10000 - sec * 12 - guessPenalty - clueCount * 700);
+    }
+
+    function win(revealed = false) {
+      solved = true;
+      const sec = Math.floor((Date.now() - startTime) / 1000);
+      document.getElementById('winTitle').textContent = revealed ? 'Answer Revealed' : '🔥 Correct!';
+      document.getElementById('winName').textContent = target.name;
+      document.getElementById('winMeta').textContent = `${sportIcon(target.sport)} ${target.sport} · ${target.team} · ${target.position}`;
+      document.getElementById('winGuesses').textContent = guesses.length;
+      document.getElementById('winTime').textContent = formatTime(sec);
+      document.getElementById('winClues').textContent = clueCount;
+      if (revealed) revealedAnswer = true;
+      const finalScore = computeScore();
+      document.getElementById('winScore').textContent = finalScore.toLocaleString();
+      updateStats({ won: !revealed, revealed, score: finalScore });
+      document.getElementById('winModal').classList.add('show');
+    }
+
+    function revealAnswer() {
+      if (!guesses.some(g => g.id === target.id)) {
+        guesses.push({ id: target.id, rank: 1, score: similarity(target, target) });
+      }
+      revealedAnswer = true;
+      renderGuesses();
+      document.getElementById('menuModal').classList.remove('show');
+      setStatus(`Answer revealed: ${target.name} — ${REVEAL_SCORE.toLocaleString()} pts`);
+      win(true);
+    }
+
+    function shareText() {
+      const sec = Math.floor((Date.now() - startTime) / 1000);
+      const sorted = guesses.slice().sort((a,b) => a.rank - b.rank);
+      const emojis = sorted.map(g => heatFromPlayer(g.player, g.score, g.rank, g.id === target.id).emoji).join('');
+      const title = mode === 'daily' ? `Hot Ice #${puzzleNumber}` : 'Hot Ice Practice';
+      const revealLine = revealedAnswer ? '\nRevealed answer' : '';
+      return `${title}\n\n${emojis || 'No guesses yet'}\n\n${guesses.length} guesses\n${formatTime(sec)}\n${computeScore().toLocaleString()} pts${revealLine}`;
+    }
+
+    async function copyShare() {
+      const text = shareText();
+      try {
+        await navigator.clipboard.writeText(text);
+        setStatus('Share result copied!');
+      } catch {
+        window.prompt('Copy your result:', text);
+      }
+    }
+
+    document.getElementById('shareBtn').addEventListener('click', copyShare);
+    document.getElementById('copyStateBtn').addEventListener('click', copyShare);
+
+    function resetGame(random = true) {
+      if (random) {
+        mode = 'practice';
+        const pool = answerPool();
+        target = pool[Math.floor(Math.random() * pool.length)];
+      } else {
+        mode = 'daily';
+        puzzleNumber = getPuzzleNumber();
+        target = dailyTarget();
+      }
+      guesses = [];
+      clueCount = 0;
+      clueValues = {};
+      startTime = Date.now();
+      solved = false;
+      revealedAnswer = false;
+      input.value = '';
+      suggestionsEl.classList.remove('show');
+      clearClueButtons();
+      document.querySelectorAll('.modal-backdrop').forEach(m => m.classList.remove('show'));
+      setStatus(mode === 'daily' ? 'Today’s daily puzzle loaded.' : 'Practice mystery athlete loaded.');
+      renderGuesses();
+    }
+
+    document.getElementById('newPuzzleBtn').addEventListener('click', () => resetGame(true));
+    document.getElementById('playAgainBtn').addEventListener('click', () => resetGame(true));
+    document.getElementById('menuDailyPuzzle').addEventListener('click', () => resetGame(false));
+    document.getElementById('menuNewPuzzle').addEventListener('click', () => resetGame(true));
+    document.getElementById('menuReveal').addEventListener('click', revealAnswer);
+    document.getElementById('menuStats').addEventListener('click', () => { document.getElementById('menuModal').classList.remove('show'); renderStats(); });
+
+    document.getElementById('infoBtn').addEventListener('click', () => document.getElementById('infoModal').classList.add('show'));
+    document.getElementById('menuBtn').addEventListener('click', () => document.getElementById('menuModal').classList.add('show'));
+    document.querySelectorAll('[data-close]').forEach(btn => btn.addEventListener('click', () => document.getElementById(btn.dataset.close).classList.remove('show')));
+    document.querySelectorAll('.modal-backdrop').forEach(m => m.addEventListener('click', (e) => { if (e.target === m) m.classList.remove('show'); }));
+    document.getElementById('muteBtn').addEventListener('click', () => setStatus('Sound is not added yet — button is just a placeholder.'));
+
+
+    function getTopMatchesFor(targetId, limit = 12) {
+      const oldTarget = target;
+      if (!byId[targetId]) return [];
+      target = byId[targetId];
+      const rows = players
+        .filter(p => p.id !== target.id)
+        .map(p => {
+          const r = rankedAgainstTarget(p);
+          const h = heatFromPlayer(p, r.score, r.rank, false);
+          return { name: p.name, sport: p.sport, team: p.team, position: p.position, rank: r.rank, score: r.score, emoji: h.emoji };
+        })
+        .sort((a, b) => a.rank - b.rank)
+        .slice(0, limit);
+      target = oldTarget;
+      return rows;
+    }
+
+    function runEngineChecks() {
+      ['jose-ramirez', 'jalen-hurts', 'mohamed-salah', 'patrick-mahomes', 'lebron-james'].forEach(id => {
+        if (byId[id]) {
+          console.group(`Hot Ice engine check: ${byId[id].name}`);
+          console.table(getTopMatchesFor(id, 10));
+          console.groupEnd();
+        }
+      });
+      return 'Engine checks printed in console.';
+    }
+
+    window.HotIceDebug = { players, answerPool, isAnswerEligible, getTopMatchesFor, runEngineChecks };
+    renderGuesses();
+  </script>
+</body>
+</html>
