@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Hot Ice Public Beta v35 Nationality Clue Build -->
+<!-- Hot Ice Public Beta v36 Streak Results Build -->
 <html lang="en">
 <head>
   <!-- Google tag (gtag.js) -->
@@ -462,6 +462,7 @@
     .score-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
     .score-tile { background: #f7f8fb; border-radius: 15px; padding: 11px; }
     .score-tile b { display: block; font-size: 22px; color: var(--ink); }
+    .streak-tile { grid-column: 1 / -1; }
     .score-tile span { color: var(--muted); font-size: 12px; font-weight: 900; }
 
     .menu-row {
@@ -812,7 +813,7 @@
         </div>
         <div id="suggestions" class="suggestions" role="listbox"></div>
       </section>
-      <div id="status" class="status-note">Hot Ice Public Beta v35 · Try typing any athlete. Tap a suggestion or press Guess.</div>
+      <div id="status" class="status-note">Hot Ice Public Beta v36 · Try typing any athlete. Tap a suggestion or press Guess.</div>
 
       <div class="section-title">
         <button id="clueToggle" class="clue-toggle">Need a clue?</button>
@@ -848,7 +849,8 @@
       <p><b>Player pool:</b> all listed players are guessable, but daily answers are chosen from more recognizable names.</p>
       <p><b>Ranking:</b> same sport, team, division/league, position, nationality, and age all help determine how close your guess is.</p>
       <p><b>Daily mode:</b> everyone gets the same daily athlete. Practice mode gives you a random one.</p>
-      <p><b>Scoring:</b> solve faster, use fewer guesses, and avoid clues for a higher score. Revealing the answer gives only 250 points.</p>
+      <p><b>Scoring:</b> solve faster, use fewer guesses, and avoid clues for a higher score. Revealing the answer gives only 250 points and resets your streak.</p>
+      <p><b>Streaks:</b> solve the daily puzzle on consecutive days to build your streak. Miss a day or reveal the answer and your streak resets to 0.</p>
       <div class="modal-actions"><button class="modal-btn secondary" data-close="infoModal">Got it</button></div>
     </div>
   </div>
@@ -895,6 +897,7 @@
         <div class="score-tile"><b id="winTime">0:00</b><span>Time</span></div>
         <div class="score-tile"><b id="winClues">0</b><span>Clues</span></div>
         <div class="score-tile"><b id="winScore">0</b><span>Score</span></div>
+        <div class="score-tile streak-tile"><b id="winStreak">0</b><span>Current Streak</span></div>
       </div>
       <div class="modal-actions">
         <button class="modal-btn primary" id="shareBtn">Share Result</button>
@@ -1685,7 +1688,8 @@
 
     function getStats() {
       try {
-        return JSON.parse(localStorage.getItem('hotIceStats') || '{}');
+        const stats = JSON.parse(localStorage.getItem('hotIceStats') || '{}');
+        return normalizeStreak(stats);
       } catch {
         return {};
       }
@@ -1695,36 +1699,66 @@
       localStorage.setItem('hotIceStats', JSON.stringify(stats));
     }
 
+    function yesterdayKey() {
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      return getDateKey(yesterday);
+    }
+
+    function normalizeStreak(stats = {}) {
+      const todayKey = getDateKey();
+      const yKey = yesterdayKey();
+
+      // If a daily win was not today or yesterday, the streak is broken.
+      if (stats.lastWinDate && stats.lastWinDate !== todayKey && stats.lastWinDate !== yKey) {
+        stats.currentStreak = 0;
+      }
+
+      return stats;
+    }
+
     function updateStats({ won = false, revealed = false, score = 0 } = {}) {
-      const stats = getStats();
+      const stats = normalizeStreak(getStats());
       const dateKey = getDateKey();
-      if (stats.lastRecordedDate === dateKey && mode === 'daily') return;
+
+      // Practice games should not affect the daily streak.
+      if (mode !== 'daily') {
+        stats.played = (stats.played || 0) + 1;
+        if (won && !revealed) stats.wins = (stats.wins || 0) + 1;
+        if (revealed) stats.reveals = (stats.reveals || 0) + 1;
+        stats.bestScore = Math.max(stats.bestScore || 0, score || 0);
+        saveStats(stats);
+        return stats;
+      }
+
+      // Only count one daily result per day, but revealing always breaks the streak.
+      if (stats.lastRecordedDate === dateKey && !revealed) {
+        return normalizeStreak(stats);
+      }
 
       stats.played = (stats.played || 0) + 1;
       if (won && !revealed) stats.wins = (stats.wins || 0) + 1;
       if (revealed) stats.reveals = (stats.reveals || 0) + 1;
 
-      if (mode === 'daily') {
-        const yesterday = new Date();
-        yesterday.setDate(yesterday.getDate() - 1);
-        const yKey = yesterday.toISOString().slice(0, 10);
-
-        if (won && !revealed) {
-          stats.currentStreak = stats.lastWinDate === yKey ? (stats.currentStreak || 0) + 1 : 1;
-          stats.maxStreak = Math.max(stats.maxStreak || 0, stats.currentStreak || 0);
-          stats.lastWinDate = dateKey;
-        } else {
-          stats.currentStreak = 0;
-        }
-        stats.lastRecordedDate = dateKey;
+      if (won && !revealed) {
+        stats.currentStreak = stats.lastWinDate === yesterdayKey() ? (stats.currentStreak || 0) + 1 : 1;
+        stats.maxStreak = Math.max(stats.maxStreak || 0, stats.currentStreak || 0);
+        stats.lastWinDate = dateKey;
+        stats.lastDailyResult = 'won';
+      } else {
+        stats.currentStreak = 0;
+        stats.lastDailyResult = revealed ? 'revealed' : 'lost';
       }
 
+      stats.lastRecordedDate = dateKey;
       stats.bestScore = Math.max(stats.bestScore || 0, score || 0);
       saveStats(stats);
+      return stats;
     }
 
     function renderStats() {
-      const stats = getStats();
+      const stats = normalizeStreak(getStats());
+      saveStats(stats);
       document.getElementById('statPlayed').textContent = stats.played || 0;
       document.getElementById('statWins').textContent = stats.wins || 0;
       document.getElementById('statStreak').textContent = stats.currentStreak || 0;
@@ -1754,8 +1788,9 @@
       if (revealed) revealedAnswer = true;
       const finalScore = computeScore();
       document.getElementById('winScore').textContent = finalScore.toLocaleString();
-      updateStats({ won: !revealed, revealed, score: finalScore });
-      trackEvent(revealed ? 'game_revealed' : 'game_solved', { sport: target.sport, guesses: guesses.length, score: finalScore, mode: mode });
+      const updatedStats = updateStats({ won: !revealed, revealed, score: finalScore });
+      document.getElementById('winStreak').textContent = mode === 'daily' ? (updatedStats.currentStreak || 0) : '—';
+      trackEvent(revealed ? 'game_revealed' : 'game_solved', { sport: target.sport, guesses: guesses.length, score: finalScore, streak: updatedStats.currentStreak || 0, mode: mode });
       document.getElementById('winModal').classList.add('show');
     }
 
@@ -1777,7 +1812,9 @@
       const emojis = sorted.map(g => heatFromPlayer(g.player, g.score, g.rank, g.id === target.id).emoji).join('');
       const title = mode === 'daily' ? `Hot Ice #${puzzleNumber}` : 'Hot Ice Practice';
       const revealLine = revealedAnswer ? '\nRevealed answer' : '';
-      return `${title}\n\n${emojis || 'No guesses yet'}\n\n${guesses.length} guesses\n${formatTime(sec)}\n${computeScore().toLocaleString()} pts${revealLine}\n\nPlay Hot Ice:\nhttps://playhotice.github.io/hot-ice/`;
+      const stats = normalizeStreak(getStats());
+      const streakLine = mode === 'daily' ? `\nStreak: ${stats.currentStreak || 0}` : '';
+      return `${title}\n\n${emojis || 'No guesses yet'}\n\n${guesses.length} guesses\n${formatTime(sec)}\n${computeScore().toLocaleString()} pts${streakLine}${revealLine}\n\nPlay Hot Ice:\nhttps://playhotice.github.io/hot-ice/`;
     }
 
     async function shareOrCopyResult() {

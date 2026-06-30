@@ -2,15 +2,15 @@
 
 Hot Ice is a mobile-first daily sports player guessing game.
 
-## Public Beta v35 Nationality Clue
+## Public Beta v36 Streak Results
 
 Updates:
-- Added Nationality as a clue
-- Removed Today's Daily Puzzle from the hamburger menu
-- Removed Practice Random Puzzle from the hamburger menu
-- Kept clean menu options: Reveal Answer, Stats, Give Feedback, Close
-- Fixed clue reset behavior
-- Keeps transparent logo, mobile layout, native sharing, auto-refocus, and analytics
+- Added Current Streak to the solve/reveal results modal
+- Daily streak increases when the daily puzzle is solved on consecutive days
+- Missing a day resets the visible streak back to 0
+- Revealing the answer resets the streak to 0
+- Share result includes the current streak
+- Google Analytics event payloads now include streak on solved/revealed games
 
 Live site:
 https://playhotice.github.io/hot-ice/
