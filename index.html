@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Hot Ice Public Beta v30 Clean Build -->
+<!-- Hot Ice Public Beta v31 Clean Build -->
 <html lang="en">
 <head>
   <!-- Google tag (gtag.js) -->
@@ -22,6 +22,14 @@
   <meta property="og:description" content="A daily hot-and-cold sports player guessing game.">
   <meta property="og:type" content="website">
   <meta name="theme-color" content="#ffffff">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Hot Ice">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/hot-ice-icon-192.png">
+  <link rel="apple-touch-icon" href="icons/hot-ice-icon-192.png">
+
   <style>
     :root {
       --ink: #172033;
@@ -482,6 +490,294 @@
       .phone-shell { min-height: calc(100dvh - 52px); }
       .app { min-height: calc(100dvh - 52px); padding: 24px; }
     }
+
+    /* v31 mobile polish */
+    html {
+      -webkit-text-size-adjust: 100%;
+      text-size-adjust: 100%;
+      overflow-x: hidden;
+    }
+    body {
+      overflow-x: hidden;
+      overscroll-behavior-y: none;
+    }
+    button, input {
+      touch-action: manipulation;
+    }
+    button:focus-visible, input:focus-visible {
+      outline: 3px solid rgba(39, 108, 232, .28);
+      outline-offset: 2px;
+    }
+
+    @media (max-width: 699px) {
+      body {
+        padding: 0;
+        background: #f9fafb;
+        min-height: 100dvh;
+      }
+
+      .phone-shell {
+        width: 100%;
+        min-height: 100dvh;
+        border: 0;
+        border-radius: 0;
+        box-shadow: none;
+      }
+
+      .app {
+        min-height: 100dvh;
+        padding:
+          max(12px, env(safe-area-inset-top))
+          max(12px, env(safe-area-inset-right))
+          max(18px, env(safe-area-inset-bottom))
+          max(12px, env(safe-area-inset-left));
+      }
+
+      .topbar {
+        align-items: center;
+        margin-bottom: 10px;
+        gap: 8px;
+      }
+
+      .brand-logo {
+        width: 128px;
+        max-width: 38vw;
+      }
+
+      .top-icons {
+        gap: 7px;
+        padding-top: 0;
+      }
+
+      .icon-btn {
+        width: 40px;
+        height: 40px;
+        font-size: 16px;
+        box-shadow: 0 5px 12px rgba(18, 27, 46, .05);
+      }
+
+      .hero-stats {
+        margin: 0 0 12px;
+      }
+
+      .mini-row {
+        gap: 9px;
+        font-size: 12px;
+        margin-bottom: 4px;
+      }
+
+      h1 {
+        font-size: clamp(33px, 9.5vw, 42px);
+        letter-spacing: -.55px;
+      }
+
+      .burst {
+        width: 19px;
+        height: 14px;
+      }
+
+      .search-wrap {
+        position: sticky;
+        top: 0;
+        z-index: 15;
+        padding: 7px 0 9px;
+        background: linear-gradient(180deg, #f9fafb 0%, rgba(249, 250, 251, .97) 78%, rgba(249, 250, 251, 0) 100%);
+      }
+
+      .search-row {
+        grid-template-columns: minmax(0, 1fr) 76px;
+        gap: 7px;
+      }
+
+      .input-shell {
+        height: 44px;
+        border-radius: 14px;
+        padding: 0 11px;
+      }
+
+      .magnify {
+        width: 16px;
+        height: 16px;
+        border-width: 2.5px;
+      }
+
+      input {
+        font-size: 16px;
+        font-weight: 700;
+      }
+
+      .guess-button {
+        height: 44px;
+        border-radius: 14px;
+      }
+
+      .guess-button span {
+        border-radius: 12px;
+        font-size: 14px;
+      }
+
+      .suggestions {
+        top: calc(100% - 1px);
+        max-height: min(48dvh, 340px);
+        border-radius: 14px;
+        overscroll-behavior: contain;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      .suggestion {
+        min-height: 48px;
+        padding: 10px 12px;
+      }
+
+      .suggestion strong {
+        font-size: 15px;
+      }
+
+      .suggestion span {
+        font-size: 11px;
+      }
+
+      .section-title {
+        margin: 6px 0 8px;
+      }
+
+      .clue-toggle {
+        min-height: 36px;
+        padding: 7px 10px;
+      }
+
+      .clue-panel {
+        border-radius: 14px;
+        padding: 10px;
+        margin-bottom: 10px;
+      }
+
+      .clue-grid {
+        gap: 7px;
+      }
+
+      .clue-btn {
+        min-height: 44px;
+        padding: 9px 7px;
+        font-size: 13px;
+        border-radius: 12px;
+      }
+
+      .clue-hint {
+        font-size: 11px;
+      }
+
+      .guess-list {
+        gap: 3px;
+        padding-bottom: calc(22px + env(safe-area-inset-bottom));
+      }
+
+      .guess-row {
+        min-height: 26px;
+        padding: 0 2px;
+        gap: 5px;
+      }
+
+      .row-name {
+        font-size: 15px;
+      }
+
+      .row-emoji {
+        font-size: 14px;
+        min-width: 36px;
+      }
+
+      .row-rank {
+        font-size: 16px;
+        min-width: 44px;
+      }
+
+      .empty-state {
+        padding: 14px;
+        border-radius: 14px;
+        font-size: 14px;
+      }
+
+      .helper-card {
+        display: none;
+      }
+
+      .modal-backdrop {
+        align-items: flex-end;
+        padding: 0;
+        background: rgba(23, 32, 51, .34);
+      }
+
+      .modal {
+        width: 100%;
+        max-width: none;
+        max-height: 88dvh;
+        overflow-y: auto;
+        border-radius: 24px 24px 0 0;
+        padding:
+          20px
+          max(18px, env(safe-area-inset-right))
+          max(20px, env(safe-area-inset-bottom))
+          max(18px, env(safe-area-inset-left));
+      }
+
+      .modal h2 {
+        font-size: 28px;
+      }
+
+      .modal p {
+        font-size: 14px;
+      }
+
+      .modal-btn {
+        min-height: 48px;
+      }
+
+      .score-grid {
+        gap: 8px;
+      }
+    }
+
+    @media (max-width: 360px) {
+      .brand-logo {
+        width: 116px;
+      }
+
+      .top-icons {
+        gap: 5px;
+      }
+
+      .icon-btn {
+        width: 38px;
+        height: 38px;
+      }
+
+      h1 {
+        font-size: clamp(30px, 9.2vw, 38px);
+      }
+
+      .search-row {
+        grid-template-columns: minmax(0, 1fr) 72px;
+      }
+
+      .row-name {
+        font-size: 14px;
+      }
+
+      .row-rank {
+        min-width: 41px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: .001ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: .001ms !important;
+      }
+    }
+
   </style>
 </head>
 <body>
@@ -507,13 +803,13 @@
         <div class="search-row">
           <div class="input-shell">
             <span class="magnify" aria-hidden="true"></span>
-            <input id="searchInput" type="text" inputmode="search" autocomplete="off" placeholder="Try José Ramírez" aria-label="Search player" />
+            <input id="searchInput" type="search" inputmode="search" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="go" placeholder="Try José Ramírez" aria-label="Search player" />
           </div>
           <button id="guessBtn" class="guess-button"><span>Guess</span></button>
         </div>
         <div id="suggestions" class="suggestions" role="listbox"></div>
       </section>
-      <div id="status" class="status-note">Hot Ice Public Beta v30 · Try typing any athlete. Tap a suggestion or press Guess.</div>
+      <div id="status" class="status-note">Hot Ice Public Beta v31 · Try typing any athlete. Tap a suggestion or press Guess.</div>
 
       <div class="section-title">
         <button id="clueToggle" class="clue-toggle">Need a clue?</button>
@@ -1280,6 +1576,7 @@
       return getMatches(query)[0] || null;
     }
 
+    input.addEventListener('focus', keepSearchVisibleOnMobile);
     input.addEventListener('input', renderSuggestions);
     input.addEventListener('focus', renderSuggestions);
     document.addEventListener('click', (e) => {
@@ -1333,6 +1630,13 @@
     });
 
 
+
+
+    function keepSearchVisibleOnMobile() {
+      const search = document.querySelector('.search-wrap');
+      if (!search) return;
+      window.setTimeout(() => search.scrollIntoView({ block: 'start', behavior: 'smooth' }), 220);
+    }
 
     const FEEDBACK_URL = 'https://github.com/playhotice/hot-ice/issues/new?title=Hot%20Ice%20Feedback&body=What%20did%20you%20notice%3F%0A%0A';
     const MISSING_PLAYER_URL = 'https://github.com/playhotice/hot-ice/issues/new?title=Missing%20Player%20Suggestion&body=Player%20name%3A%0ASport%3A%0ATeam%3A%0A';
