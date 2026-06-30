@@ -2,15 +2,22 @@
 
 Hot Ice is a mobile-first daily sports player guessing game.
 
-## Public Beta v36 Streak Results
+## Public Beta v38 Expanded Player Pool
 
 Updates:
-- Added Current Streak to the solve/reveal results modal
-- Daily streak increases when the daily puzzle is solved on consecutive days
-- Missing a day resets the visible streak back to 0
-- Revealing the answer resets the streak to 0
-- Share result includes the current streak
-- Google Analytics event payloads now include streak on solved/revealed games
+- Imported the full previously-created starter/core player database into the app
+- Guessable player pool: 1,287
+- Curated answer pool: 237
+- Sport counts:
+  - MLB: 425
+  - NFL: 378
+  - NBA: 205
+  - Premier League: 241
+  - PGA: 38
+- Expanded/draft starter rows are guessable-only unless explicitly marked answer eligible
+- Missing age/nationality rows are handled safely as Unknown instead of breaking rankings
+- NFL exact position weighting increased
+- Keeps nationality clue, streak results, clean menu, transparent logo, mobile sharing, auto-refocus, and analytics
 
 Live site:
 https://playhotice.github.io/hot-ice/
