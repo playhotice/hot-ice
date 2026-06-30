@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Hot Ice Public Beta v38 Expanded Player Pool Build -->
+<!-- Hot Ice Public Beta v39 NFL Auto-Enrich Build -->
 <html lang="en">
 <head>
   <!-- Google tag (gtag.js) -->
@@ -813,7 +813,7 @@
         </div>
         <div id="suggestions" class="suggestions" role="listbox"></div>
       </section>
-      <div id="status" class="status-note">Hot Ice Public Beta v38 · Try typing any athlete. Tap a suggestion or press Guess.</div>
+      <div id="status" class="status-note">Hot Ice Public Beta v39 · Try typing any athlete. Tap a suggestion or press Guess.</div>
 
       <div class="section-title">
         <button id="clueToggle" class="clue-toggle">Need a clue?</button>
@@ -848,6 +848,7 @@
       <p><b>Emoji guide:</b> wrong sport is cold, right sport is 🔥, and right division/team is 🔥🔥.</p>
       <p><b>Player pool:</b> all listed players are guessable, but daily answers are chosen from more recognizable names.</p>
       <p><b>Ranking:</b> same sport, team, division/league, position, nationality, and age all help determine how close your guess is. For NFL, exact position carries extra weight.</p>
+      <p><b>NFL data:</b> expanded NFL guesses can auto-fill missing age and birth country from public player data when available.</p>
       <p><b>Daily mode:</b> everyone gets the same daily athlete. Practice mode gives you a random one.</p>
       <p><b>Scoring:</b> solve faster, use fewer guesses, and avoid clues for a higher score. Revealing the answer gives only 250 points and resets your streak.</p>
       <p><b>Streaks:</b> solve the daily puzzle on consecutive days to build your streak. Miss a day or reveal the answer and your streak resets to 0.</p>
@@ -1079,6 +1080,138 @@
     function nationalityGroup(player) {
       if (!knownNationality(player)) return 'Unknown';
       return player.nationality === 'United States' ? 'United States' : 'International';
+    }
+
+    const NFL_ENRICH_CACHE_KEY = 'hotIceNflSleeperDetailsV1';
+    const NFL_ENRICH_CACHE_MS = 24 * 60 * 60 * 1000;
+
+    function normalizeLookupName(value) {
+      return String(value || '')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase()
+        .replace(/\b(jr|sr|ii|iii|iv|v)\b\.?/g, '')
+        .replace(/[^a-z0-9]/g, '');
+    }
+
+    function normalizeCountry(value) {
+      const country = String(value || '').trim();
+      if (!country) return 'Unknown';
+      if (['USA', 'US', 'U.S.', 'U.S.A.', 'United States of America'].includes(country)) return 'United States';
+      if (country === 'England') return 'England';
+      return country;
+    }
+
+    function sleeperPlayerFullName(sleeperPlayer) {
+      if (sleeperPlayer.full_name) return sleeperPlayer.full_name;
+      return `${sleeperPlayer.first_name || ''} ${sleeperPlayer.last_name || ''}`.trim();
+    }
+
+    function sleeperNameMap(rawPlayers) {
+      const map = new Map();
+
+      Object.values(rawPlayers || {}).forEach(sp => {
+        if (!sp || sp.sport !== 'nfl') return;
+
+        const names = [
+          sp.full_name,
+          sleeperPlayerFullName(sp),
+          `${sp.first_name || ''} ${sp.last_name || ''}`.trim(),
+          `${sp.search_first_name || ''} ${sp.search_last_name || ''}`.trim(),
+          sp.search_full_name
+        ].filter(Boolean);
+
+        names.forEach(name => {
+          const key = normalizeLookupName(name);
+          if (key && !map.has(key)) map.set(key, sp);
+        });
+      });
+
+      return map;
+    }
+
+    function buildNFLDetailsFromSleeper(rawPlayers) {
+      const map = sleeperNameMap(rawPlayers);
+      const details = {};
+
+      players.filter(p => p.sport === 'NFL').forEach(player => {
+        const lookupKeys = [player.name, ...(player.aliases || [])].map(normalizeLookupName);
+        const sleeperPlayer = lookupKeys.map(key => map.get(key)).find(Boolean);
+
+        if (!sleeperPlayer) return;
+
+        const age = Number(sleeperPlayer.age);
+        const birthCountry = normalizeCountry(sleeperPlayer.birth_country);
+
+        details[player.id] = {
+          age: Number.isFinite(age) ? age : null,
+          nationality: birthCountry && birthCountry !== 'Unknown' ? birthCountry : null
+        };
+      });
+
+      return details;
+    }
+
+    function applyNFLDetails(details) {
+      let updated = 0;
+
+      players.filter(p => p.sport === 'NFL').forEach(player => {
+        const detail = details && details[player.id];
+        if (!detail) return;
+
+        let changed = false;
+
+        if (!Number.isFinite(player.age) && Number.isFinite(detail.age)) {
+          player.age = detail.age;
+          changed = true;
+        }
+
+        if ((!player.nationality || player.nationality === 'Unknown') && detail.nationality) {
+          player.nationality = detail.nationality;
+          changed = true;
+        }
+
+        if (changed) updated += 1;
+      });
+
+      return updated;
+    }
+
+    async function hydrateNFLPlayerDetails() {
+      try {
+        const cached = JSON.parse(localStorage.getItem(NFL_ENRICH_CACHE_KEY) || 'null');
+        if (cached && cached.createdAt && cached.details && (Date.now() - cached.createdAt) < NFL_ENRICH_CACHE_MS) {
+          const updated = applyNFLDetails(cached.details);
+          if (updated) {
+            trackEvent('nfl_details_cached', { updated });
+          }
+          return updated;
+        }
+      } catch {
+        // Ignore cache read problems and try a fresh fetch.
+      }
+
+      try {
+        const response = await fetch('https://api.sleeper.app/v1/players/nfl', { cache: 'force-cache' });
+        if (!response.ok) throw new Error(`Sleeper player fetch failed: ${response.status}`);
+
+        const rawPlayers = await response.json();
+        const details = buildNFLDetailsFromSleeper(rawPlayers);
+        const updated = applyNFLDetails(details);
+
+        try {
+          localStorage.setItem(NFL_ENRICH_CACHE_KEY, JSON.stringify({ createdAt: Date.now(), details }));
+        } catch {
+          // Storage can fail if the browser is in private mode or storage is full. The game still works.
+        }
+
+        trackEvent('nfl_details_fetched', { updated, matched: Object.keys(details).length });
+        return updated;
+      } catch (err) {
+        console.warn('NFL detail enrichment unavailable:', err);
+        trackEvent('nfl_details_failed', { reason: String(err && err.message ? err.message : err).slice(0, 80) });
+        return 0;
+      }
     }
 
     function sportDistanceScore(a, b) {
@@ -1592,6 +1725,9 @@
     document.querySelectorAll('.modal-backdrop').forEach(m => m.addEventListener('click', (e) => { if (e.target === m) m.classList.remove('show'); }));
     document.getElementById('muteBtn').addEventListener('click', () => setStatus('Sound is off.'));
     renderGuesses();
+    hydrateNFLPlayerDetails().then(updated => {
+      if (updated) setStatus(`Hot Ice Public Beta v39 · NFL details updated for ${updated} players.`);
+    });
   </script>
 </body>
 </html>

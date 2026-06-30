@@ -2,21 +2,13 @@
 
 Hot Ice is a mobile-first daily sports player guessing game.
 
-## Public Beta v38 Expanded Player Pool
+## Public Beta v39 NFL Auto-Enrich
 
 Updates:
-- Imported the full previously-created starter/core player database into the app
-- Guessable player pool: 1,287
-- Curated answer pool: 237
-- Sport counts:
-  - MLB: 425
-  - NFL: 378
-  - NBA: 205
-  - Premier League: 241
-  - PGA: 38
-- Expanded/draft starter rows are guessable-only unless explicitly marked answer eligible
-- Missing age/nationality rows are handled safely as Unknown instead of breaking rankings
-- NFL exact position weighting increased
+- Keeps the expanded 1,287-player pool from v38
+- Adds client-side NFL detail enrichment for missing NFL age/nationality when available
+- Uses the public Sleeper NFL players endpoint once per user/day and caches only the matched Hot Ice player details
+- NFL exact-position weighting remains increased
 - Keeps nationality clue, streak results, clean menu, transparent logo, mobile sharing, auto-refocus, and analytics
 
 Live site:
