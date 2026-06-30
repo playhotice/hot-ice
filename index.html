@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Hot Ice Public Beta v31 Clean Build -->
+<!-- Hot Ice Public Beta v33 Clean Build -->
 <html lang="en">
 <head>
   <!-- Google tag (gtag.js) -->
@@ -809,7 +809,7 @@
         </div>
         <div id="suggestions" class="suggestions" role="listbox"></div>
       </section>
-      <div id="status" class="status-note">Hot Ice Public Beta v31 · Try typing any athlete. Tap a suggestion or press Guess.</div>
+      <div id="status" class="status-note">Hot Ice Public Beta v33 · Try typing any athlete. Tap a suggestion or press Guess.</div>
 
       <div class="section-title">
         <button id="clueToggle" class="clue-toggle">Need a clue?</button>
@@ -859,7 +859,6 @@
         <button class="modal-btn secondary" id="menuReveal">Reveal Answer</button>
         <button class="modal-btn secondary" id="menuStats">Stats</button>
         <button class="modal-btn secondary" id="menuFeedback">Give Feedback</button>
-        <button class="modal-btn secondary" id="menuMissingPlayer">Report Missing Player</button>
         <button class="modal-btn secondary" data-close="menuModal">Close</button>
       </div>
     </div>
@@ -896,7 +895,7 @@
         <div class="score-tile"><b id="winScore">0</b><span>Score</span></div>
       </div>
       <div class="modal-actions">
-        <button class="modal-btn primary" id="shareBtn">Copy Share Result</button>
+        <button class="modal-btn primary" id="shareBtn">Share Result</button>
         <button class="modal-btn secondary" id="playAgainBtn">Play Again</button>
       </div>
     </div>
@@ -1545,16 +1544,27 @@
       }).join('');
     }
 
+
+    function refocusGuessBox() {
+      if (solved) return;
+      input.focus({ preventScroll: true });
+      window.setTimeout(() => {
+        if (!solved) input.focus({ preventScroll: true });
+      }, 60);
+    }
+
     function guessPlayer(player) {
       if (solved) return;
       if (!player) {
         setStatus('Pick one of the player suggestions first.');
+        refocusGuessBox();
         return;
       }
       if (guesses.some(g => g.id === player.id)) {
         setStatus(`${player.name} was already guessed.`);
         input.value = '';
         suggestionsEl.classList.remove('show');
+        refocusGuessBox();
         return;
       }
       const r = rankedAgainstTarget(player);
@@ -1566,6 +1576,7 @@
       setStatus(`${player.name} ${h.emoji} #${r.rank}`);
       renderGuesses();
       if (player.id === target.id) win();
+      else refocusGuessBox();
     }
 
     function findExactOrBest(query) {
@@ -1639,7 +1650,6 @@
     }
 
     const FEEDBACK_URL = 'https://github.com/playhotice/hot-ice/issues/new?title=Hot%20Ice%20Feedback&body=What%20did%20you%20notice%3F%0A%0A';
-    const MISSING_PLAYER_URL = 'https://github.com/playhotice/hot-ice/issues/new?title=Missing%20Player%20Suggestion&body=Player%20name%3A%0ASport%3A%0ATeam%3A%0A';
 
     function openExternal(url) {
       window.open(url, '_blank', 'noopener,noreferrer');
@@ -1739,22 +1749,43 @@
       const emojis = sorted.map(g => heatFromPlayer(g.player, g.score, g.rank, g.id === target.id).emoji).join('');
       const title = mode === 'daily' ? `Hot Ice #${puzzleNumber}` : 'Hot Ice Practice';
       const revealLine = revealedAnswer ? '\nRevealed answer' : '';
-      return `${title}\n\n${emojis || 'No guesses yet'}\n\n${guesses.length} guesses\n${formatTime(sec)}\n${computeScore().toLocaleString()} pts${revealLine}`;
+      return `${title}\n\n${emojis || 'No guesses yet'}\n\n${guesses.length} guesses\n${formatTime(sec)}\n${computeScore().toLocaleString()} pts${revealLine}\n\nPlay Hot Ice:\nhttps://playhotice.github.io/hot-ice/`;
     }
 
-    async function copyShare() {
+    async function shareOrCopyResult() {
       const text = shareText();
+      const shareData = {
+        title: 'Hot Ice',
+        text,
+        url: 'https://playhotice.github.io/hot-ice/'
+      };
+
+      if (navigator.share) {
+        try {
+          await navigator.share(shareData);
+          setStatus('Share sheet opened!');
+          trackEvent('share_opened', { mode: mode });
+          return;
+        } catch (err) {
+          // If the user cancels the share sheet, do not force a copy prompt.
+          if (err && (err.name === 'AbortError' || err.name === 'NotAllowedError')) {
+            setStatus('Share canceled.');
+            return;
+          }
+        }
+      }
+
       try {
         await navigator.clipboard.writeText(text);
-        setStatus('Share result copied!');
+        setStatus('Share result copied — paste it into a text.');
         trackEvent('share_copied', { mode: mode });
       } catch {
         window.prompt('Copy your result:', text);
       }
     }
 
-    document.getElementById('shareBtn').addEventListener('click', copyShare);
-    document.getElementById('copyStateBtn').addEventListener('click', copyShare);
+    document.getElementById('shareBtn').addEventListener('click', shareOrCopyResult);
+    document.getElementById('copyStateBtn').addEventListener('click', shareOrCopyResult);
 
     function resetGame(random = true) {
       if (random) {
@@ -1787,7 +1818,6 @@
     document.getElementById('menuReveal').addEventListener('click', revealAnswer);
     document.getElementById('menuStats').addEventListener('click', () => { document.getElementById('menuModal').classList.remove('show'); renderStats(); });
     document.getElementById('menuFeedback').addEventListener('click', () => openExternal(FEEDBACK_URL));
-    document.getElementById('menuMissingPlayer').addEventListener('click', () => openExternal(MISSING_PLAYER_URL));
 
     document.getElementById('infoBtn').addEventListener('click', () => document.getElementById('infoModal').classList.add('show'));
     document.getElementById('menuBtn').addEventListener('click', () => document.getElementById('menuModal').classList.add('show'));

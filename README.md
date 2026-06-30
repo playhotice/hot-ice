@@ -2,19 +2,11 @@
 
 Hot Ice is a mobile-first daily sports player guessing game.
 
-## Public Beta v31 Mobile
+## Public Beta v34 Transparent Logo
 
-This build keeps the public beta gameplay/design but improves the mobile experience.
-
-Mobile updates:
-- Full-screen phone layout instead of a desktop-style rounded shell on mobile
-- Sticky guess/search bar while scrolling
-- Better iPhone safe-area spacing
-- Bottom-sheet style modals on mobile
-- Better tap targets
-- iOS keyboard/zoom prevention
-- Mobile web app manifest and home-screen icons
-- Google Analytics remains enabled
+Updates:
+- Hot Ice header logo now uses a transparent PNG so there is no white square around it
+- Keeps the v33 clean menu, mobile layout, native sharing, auto-refocus, and analytics
 
 Live site:
 https://playhotice.github.io/hot-ice/
