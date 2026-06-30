@@ -2,14 +2,15 @@
 
 Hot Ice is a mobile-first daily sports player guessing game.
 
-## Public Beta v39 NFL Auto-Enrich
+## Public Beta v40 Scroll + MLB Roster
 
 Updates:
-- Keeps the expanded 1,287-player pool from v38
-- Adds client-side NFL detail enrichment for missing NFL age/nationality when available
-- Uses the public Sleeper NFL players endpoint once per user/day and caches only the matched Hot Ice player details
-- NFL exact-position weighting remains increased
-- Keeps nationality clue, streak results, clean menu, transparent logo, mobile sharing, auto-refocus, and analytics
+- Guess list now scrolls inside the game area instead of making the whole page keep expanding
+- On mobile, the game stays full-screen and guesses are scrollable
+- Pete Alonso is patched to the Baltimore Orioles immediately in the embedded database
+- Adds MLB 40-man roster refresh from MLB Stats API to update current teams/divisions/positions/age/nationality when available
+- Recalculates existing guess ranks after MLB roster updates
+- Keeps expanded player pool, NFL auto-enrich, nationality clue, streak results, clean menu, transparent logo, mobile sharing, auto-refocus, and analytics
 
 Live site:
 https://playhotice.github.io/hot-ice/
