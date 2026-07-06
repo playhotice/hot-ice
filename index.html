@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Hot Ice Public Beta v41 Position + Daily Save + Share Build -->
+<!-- Hot Ice Public Beta v42 Heat + Latest Guess Build -->
 <html lang="en">
 <head>
   <!-- Google tag (gtag.js) -->
@@ -825,6 +825,65 @@
       }
     }
 
+
+    /* v42: latest guess callout and rank-based heat polish */
+    .latest-guess-card {
+      border: 1px solid rgba(255, 148, 23, .38);
+      background: linear-gradient(180deg, #fff8ee 0%, #fffdf9 100%);
+      border-radius: 16px;
+      padding: 9px 11px;
+      margin: 0 0 9px;
+      box-shadow: 0 8px 18px rgba(255, 148, 23, .10);
+    }
+
+    .latest-label {
+      color: #a25600;
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .latest-row {
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .latest-name {
+      color: var(--ink);
+      font-size: 16px;
+      font-weight: 700;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .history-divider {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      margin: 2px 3px 4px;
+    }
+
+    @media (max-width: 699px) {
+      .latest-guess-card {
+        border-radius: 14px;
+        padding: 8px 10px;
+        margin-bottom: 7px;
+      }
+
+      .latest-name {
+        font-size: 15px;
+      }
+    }
+
+
   </style>
 </head>
 <body>
@@ -856,7 +915,7 @@
         </div>
         <div id="suggestions" class="suggestions" role="listbox"></div>
       </section>
-      <div id="status" class="status-note">Hot Ice Public Beta v41 · Try typing any athlete. Tap a suggestion or press Guess.</div>
+      <div id="status" class="status-note">Hot Ice Public Beta v42 · Try typing any athlete. Tap a suggestion or press Guess.</div>
 
       <div class="section-title">
         <button id="clueToggle" class="clue-toggle">Need a clue?</button>
@@ -1418,7 +1477,7 @@
         const player = byId[g.id];
         if (!player) return g;
         const r = rankedAgainstTarget(player);
-        return { id: player.id, rank: r.rank, score: r.score };
+        return { id: player.id, rank: r.rank, score: r.score, order: g.order };
       });
       renderGuesses();
       saveDailyState();
@@ -1538,14 +1597,11 @@
       const sameTeam = player.team === target.team && player.team !== 'Individual';
       const sameDivision = isMeaningfulDivisionMatch(player, target);
 
-      // Main product direction: simple Hot/Ice language.
-      // Right sport = 🔥. Right division/team = 🔥🔥. Exact = ✅.
-      if (sameTeam || sameDivision) return { emoji: '🔥🔥', cls: 'very-hot', color: '#ff3b2e' };
-      if (sameSport) return { emoji: '🔥', cls: 'fire', color: '#ff9417' };
-
-      // Wrong sport stays cold. The rank can still move within the cold bucket,
-      // but wrong-sport guesses should never look warm.
-      if (score >= 38) return { emoji: '❄️', cls: 'cold', color: '#56b8f6' };
+      // v42: emoji now follows the rank more closely.
+      // With the expanded 1,287-player pool, a rank like #52 should feel hot, not cold.
+      if (sameTeam || rank <= 35) return { emoji: '🔥🔥', cls: 'very-hot', color: '#ff3b2e' };
+      if (sameDivision || rank <= 175 || (sameSport && rank <= 250)) return { emoji: '🔥', cls: 'fire', color: '#ff9417' };
+      if (sameSport || rank <= 525) return { emoji: '❄️', cls: 'cold', color: '#56b8f6' };
       return { emoji: '🥶', cls: 'freeze', color: '#2e7df4' };
     }
 
@@ -1592,10 +1648,11 @@
     }
 
     function safeGuessState() {
-      return guesses.map(g => ({
+      return guesses.map((g, i) => ({
         id: g.id,
         rank: g.rank,
-        score: g.score
+        score: g.score,
+        order: Number.isFinite(g.order) ? g.order : i + 1
       }));
     }
 
@@ -1672,10 +1729,10 @@
 
         guesses = (saved.guesses || [])
           .filter(g => byId[g.id])
-          .map(g => {
+          .map((g, i) => {
             const player = byId[g.id];
             const r = rankedAgainstTarget(player);
-            return { id: player.id, rank: r.rank, score: r.score };
+            return { id: player.id, rank: r.rank, score: r.score, order: Number.isFinite(g.order) ? g.order : i + 1 };
           });
 
         clueValues = saved.clueValues || {};
@@ -1732,21 +1789,45 @@
         guessList.innerHTML = '<div class="empty-state">Start with any athlete from NFL, MLB, NBA, Premier League, or PGA. The lower the rank, the closer you are.</div>';
         return;
       }
-      const rows = guesses
-        .map(g => ({...g, player: byId[g.id]}))
+
+      const enrichedRows = guesses
+        .map((g, i) => ({...g, order: Number.isFinite(g.order) ? g.order : i + 1, player: byId[g.id]}))
+        .filter(g => g.player);
+
+      const latest = enrichedRows.slice().sort((a, b) => b.order - a.order)[0];
+      const latestHeat = heatFromPlayer(latest.player, latest.score, latest.rank, latest.id === target.id);
+
+      const sortedHistory = enrichedRows
+        .filter(g => g.id !== latest.id)
         .sort((a, b) => a.rank - b.rank || b.score - a.score || a.player.name.localeCompare(b.player.name));
-      guessList.innerHTML = rows.map(g => {
-        const h = heatFromPlayer(g.player, g.score, g.rank, g.id === target.id);
-        return `
-          <article class="guess-row" style="animation-delay:${Math.min(g.rank, 8) * 12}ms">
-            <div class="row-main">
-              <div class="row-name">${g.player.name}</div>
-            </div>
-            <div class="row-emoji">${h.emoji}</div>
-            <div class="row-rank" style="color:${h.color}">#${g.rank}</div>
-          </article>
-        `;
-      }).join('');
+
+      const latestHtml = `
+        <article class="latest-guess-card">
+          <div class="latest-label">Latest guess</div>
+          <div class="latest-row">
+            <div class="latest-name">${latest.player.name}</div>
+            <div class="row-emoji">${latestHeat.emoji}</div>
+            <div class="row-rank" style="color:${latestHeat.color}">#${latest.rank}</div>
+          </div>
+        </article>
+      `;
+
+      const historyHtml = sortedHistory.length
+        ? `<div class="history-divider">Closest guesses</div>` + sortedHistory.map(g => {
+            const h = heatFromPlayer(g.player, g.score, g.rank, g.id === target.id);
+            return `
+              <article class="guess-row" style="animation-delay:${Math.min(g.rank, 8) * 12}ms">
+                <div class="row-main">
+                  <div class="row-name">${g.player.name}</div>
+                </div>
+                <div class="row-emoji">${h.emoji}</div>
+                <div class="row-rank" style="color:${h.color}">#${g.rank}</div>
+              </article>
+            `;
+          }).join('')
+        : '';
+
+      guessList.innerHTML = latestHtml + historyHtml;
     }
 
 
@@ -1773,7 +1854,7 @@
         return;
       }
       const r = rankedAgainstTarget(player);
-      guesses.push({ id: player.id, rank: r.rank, score: r.score });
+      guesses.push({ id: player.id, rank: r.rank, score: r.score, order: guesses.length + 1 });
       saveDailyState();
       trackEvent('guess_submitted', { sport: player.sport, rank: r.rank, mode: mode });
       input.value = '';
@@ -2113,7 +2194,7 @@
       const notes = [];
       if (nflUpdated) notes.push(`NFL details updated for ${nflUpdated} players`);
       if (mlbUpdated) notes.push(`MLB roster updated for ${mlbUpdated} players`);
-      if (notes.length && !solved) setStatus(`Hot Ice Public Beta v41 · ${notes.join(' · ')}.`);
+      if (notes.length && !solved) setStatus(`Hot Ice Public Beta v42 · ${notes.join(' · ')}.`);
     });
   </script>
 </body>
