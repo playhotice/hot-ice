@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Hot Ice Public Beta v40 Scroll + MLB Roster Build -->
+<!-- Hot Ice Public Beta v41 Position + Daily Save + Share Build -->
 <html lang="en">
 <head>
   <!-- Google tag (gtag.js) -->
@@ -856,7 +856,7 @@
         </div>
         <div id="suggestions" class="suggestions" role="listbox"></div>
       </section>
-      <div id="status" class="status-note">Hot Ice Public Beta v40 · Try typing any athlete. Tap a suggestion or press Guess.</div>
+      <div id="status" class="status-note">Hot Ice Public Beta v41 · Try typing any athlete. Tap a suggestion or press Guess.</div>
 
       <div class="section-title">
         <button id="clueToggle" class="clue-toggle">Need a clue?</button>
@@ -890,7 +890,7 @@
       <p>Guess the hidden athlete. Every guess gets a heat emoji and a similarity rank. Lower rank means closer. The list always sorts closest to coldest.</p>
       <p><b>Emoji guide:</b> wrong sport is cold, right sport is 🔥, and right division/team is 🔥🔥.</p>
       <p><b>Player pool:</b> all listed players are guessable, but daily answers are chosen from more recognizable names.</p>
-      <p><b>Ranking:</b> same sport, team, division/league, position, nationality, and age all help determine how close your guess is. For NFL, exact position carries extra weight.</p>
+      <p><b>Ranking:</b> same sport, team, division/league, position, nationality, and age all help determine how close your guess is. For NFL and MLB, exact position now carries more weight than division.</p>
       <p><b>NFL data:</b> expanded NFL guesses can auto-fill missing age and birth country from public player data when available.</p>
       <p><b>Daily mode:</b> everyone gets the same daily athlete. Practice mode gives you a random one.</p>
       <p><b>Scoring:</b> solve faster, use fewer guesses, and avoid clues for a higher score. Revealing the answer gives only 250 points and resets your streak.</p>
@@ -945,6 +945,7 @@
       </div>
       <div class="modal-actions">
         <button class="modal-btn primary" id="shareBtn">Share Result</button>
+        <button class="modal-btn secondary" id="copyResultBtn">Copy Result</button>
         <button class="modal-btn secondary" id="playAgainBtn">Play Again</button>
       </div>
     </div>
@@ -1030,6 +1031,7 @@
     let startTime = Date.now();
     let solved = false;
     let revealedAnswer = false;
+    let finalSeconds = null;
     let selectedSuggestionIndex = -1;
     let currentSuggestions = [];
 
@@ -1053,11 +1055,17 @@
       return `${m}:${String(s).padStart(2, '0')}`;
     }
 
+    function elapsedSeconds() {
+      if (solved && Number.isFinite(finalSeconds)) return finalSeconds;
+      return Math.max(0, Math.floor((Date.now() - startTime) / 1000));
+    }
+
+    function updateTimer() {
+      timerEl.textContent = `⏱ ${formatTime(elapsedSeconds())}`;
+    }
+
     setInterval(() => {
-      if (!solved) {
-        const sec = Math.floor((Date.now() - startTime) / 1000);
-        timerEl.textContent = `⏱ ${formatTime(sec)}`;
-      }
+      if (!solved) updateTimer();
     }, 500);
 
     function sportIcon(sport) {
@@ -1087,8 +1095,8 @@
     const SPORT_TUNING = {
       // Nationality is now intentionally above age/fame as a real clue,
       // but still below team/division/position.
-      MLB: { sameDivision: 190, sameTeam: 380, samePositionGroup: 86, samePosition: 112, sameNationality: 85, sameNationalityGroup: 35 },
-      NFL: { sameDivision: 205, sameTeam: 390, samePositionGroup: 78, samePosition: 185, sameNationality: 20, sameNationalityGroup: 0 },
+      MLB: { sameDivision: 145, sameTeam: 400, samePositionGroup: 110, samePosition: 285, sameNationality: 80, sameNationalityGroup: 35 },
+      NFL: { sameDivision: 150, sameTeam: 410, samePositionGroup: 115, samePosition: 285, sameNationality: 20, sameNationalityGroup: 0 },
       NBA: { sameDivision: 160, sameTeam: 390, samePositionGroup: 95, samePosition: 115, sameNationality: 70, sameNationalityGroup: 35 },
       'Premier League': { sameDivision: 0, sameTeam: 420, samePositionGroup: 112, samePosition: 125, sameNationality: 85, sameNationalityGroup: 30 },
       PGA: { sameDivision: 130, sameTeam: 0, samePositionGroup: 0, samePosition: 0, sameNationality: 100, sameNationalityGroup: 85 }
@@ -1413,6 +1421,7 @@
         return { id: player.id, rank: r.rank, score: r.score };
       });
       renderGuesses();
+      saveDailyState();
     }
 
     async function hydrateMLBRosterDetails() {
@@ -1576,6 +1585,126 @@
     function setStatus(msg) { statusEl.textContent = msg; }
 
 
+    const DAILY_STATE_PREFIX = 'hotIceDailyStateV1:';
+
+    function dailyStateKey(dateKey = getDateKey()) {
+      return `${DAILY_STATE_PREFIX}${dateKey}`;
+    }
+
+    function safeGuessState() {
+      return guesses.map(g => ({
+        id: g.id,
+        rank: g.rank,
+        score: g.score
+      }));
+    }
+
+    function saveDailyState() {
+      if (mode !== 'daily') return;
+
+      try {
+        localStorage.setItem(dailyStateKey(), JSON.stringify({
+          version: 41,
+          dateKey: getDateKey(),
+          targetId: target.id,
+          puzzleNumber,
+          guesses: safeGuessState(),
+          clueCount,
+          clueValues,
+          startTime,
+          solved,
+          revealedAnswer,
+          finalSeconds
+        }));
+      } catch {
+        // If storage is unavailable, the game still works for the current session.
+      }
+    }
+
+    function syncSolvedControls() {
+      if (solved) {
+        input.disabled = true;
+        input.placeholder = 'Come back tomorrow';
+        guessBtn.disabled = true;
+        suggestionsEl.classList.remove('show');
+      } else {
+        input.disabled = false;
+        input.placeholder = 'Try José Ramírez';
+        guessBtn.disabled = false;
+      }
+    }
+
+    function revealSavedClues() {
+      clearClueButtons();
+
+      const clueValuesByKey = {
+        sport: target.sport,
+        league: target.league,
+        position: target.position,
+        nationality: target.nationality,
+        team: target.team
+      };
+      const clueLabelsByKey = {
+        sport: 'Sport',
+        league: 'League',
+        position: 'Position',
+        nationality: 'Nationality',
+        team: 'Team/Club'
+      };
+
+      document.querySelectorAll('.clue-btn').forEach(btn => {
+        const key = btn.dataset.clue;
+        if (!clueValues[key]) return;
+        const value = clueValuesByKey[key] || 'Unknown';
+        btn.textContent = `${clueLabelsByKey[key] || key}: ${value}`;
+        btn.classList.add('revealed');
+      });
+    }
+
+    function loadDailyState() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(dailyStateKey()) || 'null');
+        if (!saved || saved.dateKey !== getDateKey()) return false;
+
+        mode = 'daily';
+        puzzleNumber = saved.puzzleNumber || getPuzzleNumber();
+        target = byId[saved.targetId] || dailyTarget();
+
+        guesses = (saved.guesses || [])
+          .filter(g => byId[g.id])
+          .map(g => {
+            const player = byId[g.id];
+            const r = rankedAgainstTarget(player);
+            return { id: player.id, rank: r.rank, score: r.score };
+          });
+
+        clueValues = saved.clueValues || {};
+        clueCount = Number.isFinite(saved.clueCount)
+          ? saved.clueCount
+          : Object.keys(clueValues).length;
+
+        startTime = Number.isFinite(saved.startTime) ? saved.startTime : Date.now();
+        solved = !!saved.solved;
+        revealedAnswer = !!saved.revealedAnswer;
+        finalSeconds = Number.isFinite(saved.finalSeconds) ? saved.finalSeconds : null;
+
+        revealSavedClues();
+        renderGuesses();
+        updateTimer();
+        syncSolvedControls();
+
+        setStatus(solved
+          ? 'Today’s puzzle is already complete. Come back tomorrow for a new one.'
+          : 'Today’s puzzle restored — your guesses and timer were saved.');
+
+        return true;
+      } catch {
+        return false;
+      }
+    }
+
+
+
     function clearClueButtons() {
       const clueLabels = {
         sport: 'Reveal Sport',
@@ -1645,6 +1774,7 @@
       }
       const r = rankedAgainstTarget(player);
       guesses.push({ id: player.id, rank: r.rank, score: r.score });
+      saveDailyState();
       trackEvent('guess_submitted', { sport: player.sport, rank: r.rank, mode: mode });
       input.value = '';
       suggestionsEl.classList.remove('show');
@@ -1727,6 +1857,8 @@
       const value = clueValuesByKey[key] || 'Unknown';
       btn.textContent = `${clueLabelsByKey[key] || key}: ${value}`;
       btn.classList.add('revealed');
+      saveDailyState();
+      trackEvent('clue_revealed', { clue: key, mode: mode, sport: target.sport });
       renderGuesses();
     });
 
@@ -1740,6 +1872,7 @@
     }
 
     const FEEDBACK_URL = 'https://github.com/playhotice/hot-ice/issues/new?title=Hot%20Ice%20Feedback&body=What%20did%20you%20notice%3F%0A%0A';
+    const PLAY_URL = 'https://playhotice.com/';
 
     function openExternal(url) {
       window.open(url, '_blank', 'noopener,noreferrer');
@@ -1830,14 +1963,15 @@
 
     function computeScore() {
       if (revealedAnswer) return REVEAL_SCORE;
-      const sec = Math.floor((Date.now() - startTime) / 1000);
+      const sec = elapsedSeconds();
       const guessPenalty = Math.max(0, guesses.length - 1) * 260;
       return Math.max(0, 10000 - sec * 12 - guessPenalty - clueCount * 700);
     }
 
     function win(revealed = false) {
       solved = true;
-      const sec = Math.floor((Date.now() - startTime) / 1000);
+      if (!Number.isFinite(finalSeconds)) finalSeconds = elapsedSeconds();
+      const sec = elapsedSeconds();
       document.getElementById('winTitle').textContent = revealed ? 'Answer Revealed' : '🔥 Correct!';
       document.getElementById('winName').textContent = target.name;
       document.getElementById('winMeta').textContent = `${sportIcon(target.sport)} ${target.sport} · ${target.team} · ${target.position}`;
@@ -1848,6 +1982,8 @@
       const finalScore = computeScore();
       document.getElementById('winScore').textContent = finalScore.toLocaleString();
       const updatedStats = updateStats({ won: !revealed, revealed, score: finalScore });
+      saveDailyState();
+      syncSolvedControls();
       document.getElementById('winStreak').textContent = mode === 'daily' ? (updatedStats.currentStreak || 0) : '—';
       trackEvent(revealed ? 'game_revealed' : 'game_solved', { sport: target.sport, guesses: guesses.length, score: finalScore, streak: updatedStats.currentStreak || 0, mode: mode });
       document.getElementById('winModal').classList.add('show');
@@ -1858,6 +1994,7 @@
         guesses.push({ id: target.id, rank: 1, score: similarity(target, target) });
       }
       revealedAnswer = true;
+      saveDailyState();
       renderGuesses();
       document.getElementById('menuModal').classList.remove('show');
       setStatus(`Answer revealed: ${target.name} — ${REVEAL_SCORE.toLocaleString()} pts`);
@@ -1866,14 +2003,29 @@
     }
 
     function shareText() {
-      const sec = Math.floor((Date.now() - startTime) / 1000);
+      const sec = elapsedSeconds();
       const sorted = guesses.slice().sort((a,b) => a.rank - b.rank);
-      const emojis = sorted.map(g => heatFromPlayer(g.player, g.score, g.rank, g.id === target.id).emoji).join('');
+      const emojis = sorted.map(g => {
+        const player = byId[g.id];
+        return player ? heatFromPlayer(player, g.score, g.rank, g.id === target.id).emoji : '';
+      }).join('');
       const title = mode === 'daily' ? `Hot Ice #${puzzleNumber}` : 'Hot Ice Practice';
       const revealLine = revealedAnswer ? '\nRevealed answer' : '';
       const stats = normalizeStreak(getStats());
       const streakLine = mode === 'daily' ? `\nStreak: ${stats.currentStreak || 0}` : '';
-      return `${title}\n\n${emojis || 'No guesses yet'}\n\n${guesses.length} guesses\n${formatTime(sec)}\n${computeScore().toLocaleString()} pts${streakLine}${revealLine}\n\nPlay Hot Ice:\nhttps://playhotice.github.io/hot-ice/`;
+      return `${title}\n\n${emojis || 'No guesses yet'}\n\n${guesses.length} guesses\n${formatTime(sec)}\n${computeScore().toLocaleString()} pts${streakLine}${revealLine}\n\nPlay Hot Ice:\n${PLAY_URL}`;
+    }
+
+    async function copyResultToClipboard() {
+      const text = shareText();
+
+      try {
+        await navigator.clipboard.writeText(text);
+        setStatus('Result copied — paste it into a text.');
+        trackEvent('share_copied', { mode: mode });
+      } catch {
+        window.prompt('Copy your result:', text);
+      }
     }
 
     async function shareOrCopyResult() {
@@ -1881,35 +2033,29 @@
       const shareData = {
         title: 'Hot Ice',
         text,
-        url: 'https://playhotice.github.io/hot-ice/'
+        url: PLAY_URL
       };
 
       if (navigator.share) {
         try {
           await navigator.share(shareData);
-          setStatus('Share sheet opened!');
+          setStatus('Share sheet opened — choose Messages to text it.');
           trackEvent('share_opened', { mode: mode });
           return;
         } catch (err) {
-          // If the user cancels the share sheet, do not force a copy prompt.
-          if (err && (err.name === 'AbortError' || err.name === 'NotAllowedError')) {
+          if (err && err.name === 'AbortError') {
             setStatus('Share canceled.');
             return;
           }
         }
       }
 
-      try {
-        await navigator.clipboard.writeText(text);
-        setStatus('Share result copied — paste it into a text.');
-        trackEvent('share_copied', { mode: mode });
-      } catch {
-        window.prompt('Copy your result:', text);
-      }
+      await copyResultToClipboard();
     }
 
     document.getElementById('shareBtn').addEventListener('click', shareOrCopyResult);
-    document.getElementById('copyStateBtn').addEventListener('click', shareOrCopyResult);
+    document.getElementById('copyResultBtn').addEventListener('click', copyResultToClipboard);
+    document.getElementById('copyStateBtn').addEventListener('click', copyResultToClipboard);
 
     function resetGame(random = true) {
       if (random) {
@@ -1927,12 +2073,15 @@
       startTime = Date.now();
       solved = false;
       revealedAnswer = false;
+      finalSeconds = null;
       input.value = '';
       suggestionsEl.classList.remove('show');
       clearClueButtons();
       document.querySelectorAll('.modal-backdrop').forEach(m => m.classList.remove('show'));
       setStatus(mode === 'daily' ? 'Today’s daily puzzle loaded.' : 'Practice mystery athlete loaded.');
       renderGuesses();
+      syncSolvedControls();
+      if (mode === 'daily') saveDailyState();
     }
 
     document.getElementById('newPuzzleBtn').addEventListener('click', () => resetGame(true));
@@ -1946,9 +2095,25 @@
     document.querySelectorAll('[data-close]').forEach(btn => btn.addEventListener('click', () => document.getElementById(btn.dataset.close).classList.remove('show')));
     document.querySelectorAll('.modal-backdrop').forEach(m => m.addEventListener('click', (e) => { if (e.target === m) m.classList.remove('show'); }));
     document.getElementById('muteBtn').addEventListener('click', () => setStatus('Sound is off.'));
-    renderGuesses();
-    hydrateNFLPlayerDetails().then(updated => {
-      if (updated) setStatus(`Hot Ice Public Beta v40 · NFL details updated for ${updated} players.`);
+
+    if (!loadDailyState()) {
+      renderGuesses();
+      updateTimer();
+      syncSolvedControls();
+      saveDailyState();
+      trackEvent('app_loaded', { mode: mode, puzzle: puzzleNumber });
+    } else {
+      trackEvent('app_loaded', { mode: mode, puzzle: puzzleNumber, restored: true, solved });
+    }
+
+    Promise.all([
+      hydrateNFLPlayerDetails(),
+      typeof hydrateMLBRosterDetails === 'function' ? hydrateMLBRosterDetails() : Promise.resolve(0)
+    ]).then(([nflUpdated, mlbUpdated]) => {
+      const notes = [];
+      if (nflUpdated) notes.push(`NFL details updated for ${nflUpdated} players`);
+      if (mlbUpdated) notes.push(`MLB roster updated for ${mlbUpdated} players`);
+      if (notes.length && !solved) setStatus(`Hot Ice Public Beta v41 · ${notes.join(' · ')}.`);
     });
   </script>
 </body>
