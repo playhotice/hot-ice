@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Hot Ice Public Beta v45 Community Stats Foundation Build -->
+<!-- Hot Ice Public Beta v46 Live Community Stats Build -->
 <html lang="en">
 <head>
   <!-- Google tag (gtag.js) -->
@@ -967,7 +967,7 @@
         </div>
         <div id="suggestions" class="suggestions" role="listbox"></div>
       </section>
-      <div id="status" class="status-note">Hot Ice Public Beta v45 · Try typing any athlete. Tap a suggestion or press Guess.</div>
+      <div id="status" class="status-note">Hot Ice Public Beta v46 · Try typing any athlete. Tap a suggestion or press Guess.</div>
       <div id="communityStats" class="community-stats" hidden></div>
 
       <div class="howto-wrap"><button id="howToBtn" class="howto-btn">How To Play</button></div>
@@ -2015,8 +2015,8 @@
     // v45 foundation: optional live community stats.
     // Leave blank until Supabase is connected. If blank or unavailable, the game continues normally.
     const COMMUNITY_STATS_CONFIG = {
-      supabaseUrl: '',
-      anonKey: ''
+      supabaseUrl: 'https://dzotjljtxnhuftckwqak.supabase.co',
+      anonKey: 'sb_publishable_0APYCBHVS4MR627T-kiHJw_FoeDQveR'
     };
 
     const communityStatsEl = document.getElementById('communityStats');
@@ -2077,7 +2077,9 @@
         body: JSON.stringify(payload)
       });
       if (!response.ok) throw new Error(`Community stats request failed: ${response.status}`);
-      return response.json();
+      const text = await response.text();
+      if (!text) return null;
+      return JSON.parse(text);
     }
 
     function renderCommunityStats(stats) {
@@ -2388,7 +2390,7 @@
       const notes = [];
       if (nflUpdated) notes.push(`NFL details updated for ${nflUpdated} players`);
       if (mlbUpdated) notes.push(`MLB roster updated for ${mlbUpdated} players`);
-      if (notes.length && !solved) setStatus(`Hot Ice Public Beta v45 · ${notes.join(' · ')}.`);
+      if (notes.length && !solved) setStatus(`Hot Ice Public Beta v46 · ${notes.join(' · ')}.`);
     });
   </script>
 </body>
