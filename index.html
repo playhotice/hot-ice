@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Hot Ice Public Beta v42 Heat + Latest Guess Build -->
+<!-- Hot Ice Public Beta v44 How To Play Build -->
 <html lang="en">
 <head>
   <!-- Google tag (gtag.js) -->
@@ -826,6 +826,12 @@
     }
 
 
+
+    .guess-row.latest-history-row {
+      border-color: rgba(255, 148, 23, .28);
+      background: #fffaf2;
+    }
+
     /* v42: latest guess callout and rank-based heat polish */
     .latest-guess-card {
       border: 1px solid rgba(255, 148, 23, .38);
@@ -884,6 +890,31 @@
     }
 
 
+
+    .howto-wrap {
+      display: flex;
+      justify-content: center;
+      margin: 12px 0 8px;
+    }
+
+    .howto-btn {
+      appearance: none;
+      border: 0;
+      border-radius: 14px;
+      background: #eceef3;
+      color: #111827;
+      font-size: 17px;
+      font-weight: 600;
+      padding: 14px 30px;
+      line-height: 1;
+      box-shadow: inset 0 0 0 1px rgba(23, 32, 51, .05);
+    }
+
+    .howto-btn:active {
+      transform: translateY(1px);
+    }
+
+
   </style>
 </head>
 <body>
@@ -915,7 +946,9 @@
         </div>
         <div id="suggestions" class="suggestions" role="listbox"></div>
       </section>
-      <div id="status" class="status-note">Hot Ice Public Beta v42 · Try typing any athlete. Tap a suggestion or press Guess.</div>
+      <div id="status" class="status-note">Hot Ice Public Beta v44 · Try typing any athlete. Tap a suggestion or press Guess.</div>
+
+      <div class="howto-wrap"><button id="howToBtn" class="howto-btn">How To Play</button></div>
 
       <div class="section-title">
         <button id="clueToggle" class="clue-toggle">Need a clue?</button>
@@ -945,18 +978,19 @@
 
   <div class="modal-backdrop" id="infoModal">
     <div class="modal">
-      <h2>How to play</h2>
-      <p>Guess the hidden athlete. Every guess gets a heat emoji and a similarity rank. Lower rank means closer. The list always sorts closest to coldest.</p>
-      <p><b>Emoji guide:</b> wrong sport is cold, right sport is 🔥, and right division/team is 🔥🔥.</p>
-      <p><b>Player pool:</b> all listed players are guessable, but daily answers are chosen from more recognizable names.</p>
-      <p><b>Ranking:</b> same sport, team, division/league, position, nationality, and age all help determine how close your guess is. For NFL and MLB, exact position now carries more weight than division.</p>
-      <p><b>NFL data:</b> expanded NFL guesses can auto-fill missing age and birth country from public player data when available.</p>
-      <p><b>Daily mode:</b> everyone gets the same daily athlete. Practice mode gives you a random one.</p>
-      <p><b>Scoring:</b> solve faster, use fewer guesses, and avoid clues for a higher score. Revealing the answer gives only 250 points and resets your streak.</p>
-      <p><b>Streaks:</b> solve the daily puzzle on consecutive days to build your streak. Miss a day or reveal the answer and your streak resets to 0.</p>
+      <h2>How To Play</h2>
+      <p>Try to guess the hidden sports player by typing any player you think is related.</p>
+      <p><b>Rank (#)</b> shows how close your guess is compared to all other players. Lower is better.</p>
+      <p><b>Examples:</b></p>
+      <p><b>Secret Player:</b> LeBron James<br>
+      Luka Doncic → <b>#6</b> (very close)<br>
+      Patrick Mahomes → <b>#344</b> (close-ish)<br>
+      Erling Haaland → <b>#2,333</b> (far)</p>
+      <p>Your latest guess is pinned at the top, and the full list below stays sorted by closest rank.</p>
+      <p>Use clues if you need help, but clues lower your score.</p>
       <div class="modal-actions"><button class="modal-btn secondary" data-close="infoModal">Got it</button></div>
     </div>
-  </div>
+  </div></div>
 
   <div class="modal-backdrop" id="menuModal">
     <div class="modal">
@@ -1798,7 +1832,6 @@
       const latestHeat = heatFromPlayer(latest.player, latest.score, latest.rank, latest.id === target.id);
 
       const sortedHistory = enrichedRows
-        .filter(g => g.id !== latest.id)
         .sort((a, b) => a.rank - b.rank || b.score - a.score || a.player.name.localeCompare(b.player.name));
 
       const latestHtml = `
@@ -1816,7 +1849,7 @@
         ? `<div class="history-divider">Closest guesses</div>` + sortedHistory.map(g => {
             const h = heatFromPlayer(g.player, g.score, g.rank, g.id === target.id);
             return `
-              <article class="guess-row" style="animation-delay:${Math.min(g.rank, 8) * 12}ms">
+              <article class="guess-row ${g.id === latest.id ? 'latest-history-row' : ''}" style="animation-delay:${Math.min(g.rank, 8) * 12}ms">
                 <div class="row-main">
                   <div class="row-name">${g.player.name}</div>
                 </div>
@@ -2172,6 +2205,7 @@
     document.getElementById('menuFeedback').addEventListener('click', () => openExternal(FEEDBACK_URL));
 
     document.getElementById('infoBtn').addEventListener('click', () => document.getElementById('infoModal').classList.add('show'));
+    document.getElementById('howToBtn').addEventListener('click', () => document.getElementById('infoModal').classList.add('show'));
     document.getElementById('menuBtn').addEventListener('click', () => document.getElementById('menuModal').classList.add('show'));
     document.querySelectorAll('[data-close]').forEach(btn => btn.addEventListener('click', () => document.getElementById(btn.dataset.close).classList.remove('show')));
     document.querySelectorAll('.modal-backdrop').forEach(m => m.addEventListener('click', (e) => { if (e.target === m) m.classList.remove('show'); }));
@@ -2194,7 +2228,7 @@
       const notes = [];
       if (nflUpdated) notes.push(`NFL details updated for ${nflUpdated} players`);
       if (mlbUpdated) notes.push(`MLB roster updated for ${mlbUpdated} players`);
-      if (notes.length && !solved) setStatus(`Hot Ice Public Beta v42 · ${notes.join(' · ')}.`);
+      if (notes.length && !solved) setStatus(`Hot Ice Public Beta v44 · ${notes.join(' · ')}.`);
     });
   </script>
 </body>
