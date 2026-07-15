@@ -1028,194 +1028,82 @@
     .match-strip {
       margin-top: 1px;
     }
-/* Hot Ice latest guess row v2 mobile fix
-   Paste this at the VERY BOTTOM of your existing style.css file.
-
-   Goal:
-   - The latest/first guess row gets one clean gray background.
-   - The gray background wraps the player name AND the clue detail row.
-   - Nothing clips once the guess list gets longer than 5 players.
-*/
-
-@media (max-width: 700px) {
-  /* Main list containers: let the page/list grow naturally */
-  #guesses,
-  #guessList,
-  #guessesList,
-  #history,
-  #results,
-  #resultsList,
-  .guesses,
-  .guess-list,
-  .guesses-list,
-  .guessHistory,
-  .guess-history,
-  .results,
-  .results-list,
-  .guess-results {
-    height: auto !important;
-    max-height: none !important;
-    overflow: visible !important;
-    contain: none !important;
-    padding-bottom: calc(96px + env(safe-area-inset-bottom)) !important;
+/* Hot Ice v50 mobile latest guess gray box fix */
+@media (max-width: 699px) {
+  .guess-list {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    -webkit-overflow-scrolling: touch !important;
+    padding-bottom: calc(18px + env(safe-area-inset-bottom)) !important;
   }
 
-  /* Every direct row in the list should be allowed to grow */
-  #guesses > *,
-  #guessList > *,
-  #guessesList > *,
-  #history > *,
-  #results > *,
-  #resultsList > *,
-  .guesses > *,
-  .guess-list > *,
-  .guesses-list > *,
-  .guessHistory > *,
-  .guess-history > *,
-  .results > *,
-  .results-list > *,
-  .guess-results > * {
-    height: auto !important;
-    min-height: 58px !important;
-    max-height: none !important;
-    overflow: visible !important;
-    contain: none !important;
-    box-sizing: border-box !important;
-  }
-
-  /* Put the gray latest-guess background on the whole FIRST row */
-  #guesses > *:first-child,
-  #guessList > *:first-child,
-  #guessesList > *:first-child,
-  #history > *:first-child,
-  #results > *:first-child,
-  #resultsList > *:first-child,
-  .guesses > *:first-child,
-  .guess-list > *:first-child,
-  .guesses-list > *:first-child,
-  .guessHistory > *:first-child,
-  .guess-history > *:first-child,
-  .results > *:first-child,
-  .results-list > *:first-child,
-  .guess-results > *:first-child {
+  .latest-guess-card {
     display: block !important;
     height: auto !important;
-    min-height: 58px !important;
+    min-height: 0 !important;
     max-height: none !important;
     overflow: visible !important;
-    padding: 8px 10px 7px !important;
-    margin: 0 0 6px !important;
-    border-radius: 8px !important;
-    background: #eef2f7 !important;
-    border: 1px solid #cfd6e3 !important;
-    box-shadow: none !important;
-    contain: none !important;
-  }
-
-  /* If the current gray box is only on an inner/top-line element, remove it there */
-  #guesses > *:first-child > *,
-  #guessList > *:first-child > *,
-  #guessesList > *:first-child > *,
-  #history > *:first-child > *,
-  #results > *:first-child > *,
-  #resultsList > *:first-child > *,
-  .guesses > *:first-child > *,
-  .guess-list > *:first-child > *,
-  .guesses-list > *:first-child > *,
-  .guessHistory > *:first-child > *,
-  .guess-history > *:first-child > *,
-  .results > *:first-child > *,
-  .results-list > *:first-child > *,
-  .guess-results > *:first-child > * {
-    height: auto !important;
-    max-height: none !important;
-    overflow: visible !important;
-    background: transparent !important;
-    border: 0 !important;
+    padding: 5px 6px 5px !important;
+    margin: 0 0 4px !important;
+    border-radius: 7px !important;
+    background: #eef1f5 !important;
+    border: 1px solid #cfd6e2 !important;
     box-shadow: none !important;
   }
 
-  /* Common row class names, just in case Hot Ice uses one of these */
-  .guess-row,
-  .guessItem,
-  .guess-item,
-  .guess-card,
-  .guess-entry,
-  .guess-result,
-  .result-row,
-  .result-card,
-  .player-row,
-  .player-guess-row {
+  .latest-main-row {
+    display: grid !important;
+    grid-template-columns: 1fr auto auto !important;
+    align-items: center !important;
+    gap: 6px !important;
     height: auto !important;
-    min-height: 58px !important;
-    max-height: none !important;
+    min-height: 18px !important;
     overflow: visible !important;
-    contain: none !important;
-    box-sizing: border-box !important;
   }
 
-  /* Common detail/meta rows under the player name */
-  .guess-details,
-  .guessMeta,
-  .guess-meta,
-  .guess-sub,
-  .guessSub,
-  .match-details,
-  .match-row,
-  .result-details,
-  .result-meta,
-  .player-details,
-  .player-meta,
-  .clue-row,
-  .clueRow {
+  .latest-name {
+    min-width: 0 !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    line-height: 1.15 !important;
+  }
+
+  .match-strip {
     display: grid !important;
     grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
-    align-items: start !important;
-    gap: 3px !important;
-    margin-top: 1px !important;
+    gap: 2px !important;
+    margin-top: 2px !important;
     height: auto !important;
-    min-height: 16px !important;
+    min-height: 12px !important;
     max-height: none !important;
     overflow: visible !important;
-    font-size: 12px !important;
-    line-height: 1.05 !important;
+  }
+
+  .match-cell {
+    font-size: 10px !important;
+    line-height: 1.1 !important;
+    height: auto !important;
+    overflow: hidden !important;
     white-space: nowrap !important;
   }
 
-  /* Common top line / player name row */
-  .guess-main,
-  .guessMain,
-  .guess-header,
-  .guessHeader,
-  .result-main,
-  .result-header,
-  .player-main,
-  .player-header {
+  .guess-row {
+    display: block !important;
     height: auto !important;
-    min-height: 23px !important;
+    min-height: 0 !important;
     max-height: none !important;
     overflow: visible !important;
-    line-height: 1.1 !important;
+    padding: 3px 5px 4px !important;
   }
 
-  /* This helps if a row is built as a 2-row grid but one row got fixed */
-  .guess-row > *,
-  .guessItem > *,
-  .guess-item > *,
-  .guess-card > *,
-  .guess-entry > *,
-  .guess-result > *,
-  .result-row > *,
-  .result-card > *,
-  .player-row > *,
-  .player-guess-row > * {
-    height: auto !important;
-    max-height: none !important;
-    overflow: visible !important;
+  .guess-row.latest-history-row {
+    background: transparent !important;
+    border: none !important;
   }
 }
-
-
   </style>
 </head>
 <body>
