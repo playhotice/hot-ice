@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Hot Ice Public Beta v49 Match Details No PGA Build -->
+<!-- Hot Ice Public Beta v50 Reddit Clean List Build -->
 <html lang="en">
 <head>
   <!-- Google tag (gtag.js) -->
@@ -900,15 +900,7 @@
       margin: 0 0 5px;
     }
 
-    .latest-label {
-      color: #a25600;
-      font-size: 12px;
-      font-weight: 500;
-      letter-spacing: 0;
-      text-transform: none;
-      margin: 0;
-      white-space: nowrap;
-    }
+    .latest-label { display: none; }
 
     .latest-name {
       color: var(--ink);
@@ -920,14 +912,7 @@
       white-space: nowrap;
     }
 
-    .history-divider {
-      color: var(--muted);
-      font-size: 13px;
-      font-weight: 500;
-      letter-spacing: 0;
-      text-transform: none;
-      margin: 4px 3px 3px;
-    }
+    .history-divider { display: none; }
 
 
 
@@ -1006,6 +991,45 @@
     }
 
 
+
+    /* v50: Reddit-style clean guess list */
+    .latest-guess-card {
+      display: block;
+      padding: 3px 6px 4px;
+      border-radius: 6px;
+      background: #eef1f5;
+      border: 1px solid #cfd6e2;
+      box-shadow: none;
+      margin: 0 0 3px;
+    }
+
+    .latest-main-row {
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .latest-name {
+      color: var(--ink);
+      font-size: 15px;
+      font-weight: 500;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .guess-row.latest-history-row {
+      border-color: transparent;
+      background: transparent;
+    }
+
+    .match-strip {
+      margin-top: 1px;
+    }
+
+
   </style>
 </head>
 <body>
@@ -1037,7 +1061,7 @@
         </div>
         <div id="suggestions" class="suggestions" role="listbox"></div>
       </section>
-      <div id="status" class="status-note">Hot Ice Public Beta v49 · Try typing any athlete. Tap a suggestion or press Guess.</div>
+      <div id="status" class="status-note">Hot Ice Public Beta v50 · Try typing any athlete. Tap a suggestion or press Guess.</div>
       <div id="communityStats" class="community-stats" hidden></div>
 
       <div class="howto-wrap"><button id="howToBtn" class="howto-btn">How To Play</button></div>
@@ -1079,7 +1103,7 @@
       Luka Doncic → <b>#6</b> (very close)<br>
       Patrick Mahomes → <b>#344</b> (close-ish)<br>
       Erling Haaland → <b>#1,100</b> (far)</p>
-      <p>Your latest guess is pinned at the top, and the full list below stays sorted by closest rank.</p>
+      <p>Your most recent guess appears in the gray row at the top, and the full list below stays sorted by closest rank.</p>
       <p>Use clues if you need help, but clues lower your score.</p>
       <p>Community stats count players only after they submit at least one guess.</p>
       <div class="modal-actions"><button class="modal-btn secondary" data-close="infoModal">Got it</button></div>
@@ -1953,7 +1977,6 @@
       const latestHtml = `
         <article class="latest-guess-card">
           <div class="latest-main-row">
-            <div class="latest-label">Latest</div>
             <div class="latest-name">${latest.player.name}</div>
             <div class="row-emoji">${latestHeat.emoji}</div>
             <div class="row-rank" style="color:${latestHeat.color}">#${latest.rank}</div>
@@ -1963,7 +1986,7 @@
       `;
 
       const historyHtml = sortedHistory.length
-        ? `<div class="history-divider">Closest guesses</div>` + sortedHistory.map(g => {
+        ? sortedHistory.map(g => {
             const h = heatFromPlayer(g.player, g.score, g.rank, g.id === target.id);
             return `
               <article class="guess-row ${g.id === latest.id ? 'latest-history-row' : ''}" style="animation-delay:${Math.min(g.rank, 8) * 12}ms">
@@ -2492,7 +2515,7 @@
       const notes = [];
       if (nflUpdated) notes.push(`NFL details updated for ${nflUpdated} players`);
       if (mlbUpdated) notes.push(`MLB roster updated for ${mlbUpdated} players`);
-      if (notes.length && !solved) setStatus(`Hot Ice Public Beta v49 · ${notes.join(' · ')}.`);
+      if (notes.length && !solved) setStatus(`Hot Ice Public Beta v50 · ${notes.join(' · ')}.`);
     });
   </script>
 </body>
