@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Hot Ice Public Beta v53 Sport Hub Redesign Build -->
+<!-- Hot Ice Public Beta v54 Hot Ice Colors Sport Hub Build -->
 <html lang="en">
 <head>
   <!-- Google tag (gtag.js) -->
@@ -21,7 +21,7 @@
   <meta property="og:title" content="Hot Ice">
   <meta property="og:description" content="A daily hot-and-cold sports player guessing game.">
   <meta property="og:type" content="website">
-  <meta name="theme-color" content="#f6d52f">
+  <meta name="theme-color" content="#f8fafc">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Hot Ice">
@@ -1697,6 +1697,224 @@
       }
     }
 
+
+    /* v54: keep the sport-app layout, but return to Hot Ice's softer orange/blue/white palette */
+    :root {
+      --hi-yellow: #ffffff;
+      --hi-yellow-2: #f8fafc;
+      --hi-black: #172033;
+      --hi-ink: #172033;
+      --hi-border: #dfe6f1;
+      --hi-card: #ffffff;
+      --hi-muted: #7d8798;
+      --hi-hot: #ff3325;
+      --hi-warm: #ff991a;
+      --hi-ice: #56b8f6;
+      --hi-deep-ice: #276ce8;
+      --hi-gradient: linear-gradient(135deg, var(--hi-hot), var(--hi-warm), var(--hi-ice), var(--hi-deep-ice));
+    }
+
+    body {
+      background: linear-gradient(180deg, #f8fafc 0%, #f5f6f8 100%);
+      color: var(--hi-ink);
+    }
+
+    .phone-shell {
+      background: #f9fafb;
+    }
+
+    .app {
+      background:
+        radial-gradient(circle at 12% 8%, rgba(255, 153, 26, .12), transparent 27%),
+        radial-gradient(circle at 88% 10%, rgba(86, 184, 246, .16), transparent 28%),
+        linear-gradient(180deg, #f9fafb 0%, #f4f7fb 100%);
+    }
+
+    .app-nav {
+      background: rgba(255,255,255,.92);
+      color: var(--hi-ink);
+      border-bottom: 1px solid rgba(23,32,51,.08);
+      box-shadow: 0 8px 26px rgba(18, 27, 46, .08);
+      backdrop-filter: blur(16px);
+    }
+
+    .nav-logo {
+      border: 2px solid rgba(23,32,51,.08);
+      background: #fff;
+      box-shadow: 0 8px 20px rgba(18, 27, 46, .08);
+    }
+
+    .nav-link {
+      color: #8b94a6;
+    }
+
+    .nav-link.active {
+      color: var(--hi-ink);
+    }
+
+    .nav-link.active::after {
+      background: var(--hi-gradient);
+      height: 3px;
+    }
+
+    .icon-btn {
+      border: 1px solid rgba(23,32,51,.08);
+      background: #fff;
+      color: #566075;
+      box-shadow: 0 8px 20px rgba(18, 27, 46, .07);
+    }
+
+    .home-logo-card {
+      border: 1px solid rgba(23,32,51,.08);
+      background: #fff;
+      box-shadow: 0 18px 48px rgba(18, 27, 46, .10);
+    }
+
+    .home-hero h2,
+    .sport-heading h2 {
+      color: var(--hi-ink);
+      letter-spacing: .5px;
+    }
+
+    .home-hero p,
+    .site-disclaimer,
+    .play-card em {
+      color: var(--hi-muted);
+    }
+
+    .home-btn,
+    .play-card,
+    .back-circle {
+      border: 1px solid rgba(23,32,51,.10);
+      background: #fff;
+      color: var(--hi-ink);
+      box-shadow: 0 12px 30px rgba(18, 27, 46, .10);
+    }
+
+    .home-btn:active,
+    .play-card:active,
+    .sport-tab:active,
+    .back-circle:active {
+      transform: scale(.99);
+      box-shadow: 0 8px 20px rgba(18, 27, 46, .08);
+    }
+
+    .primary-home,
+    #homePlayBtn {
+      background: var(--hi-gradient);
+      color: #fff;
+      border: none;
+      box-shadow: 0 14px 32px rgba(39, 108, 232, .18);
+    }
+
+    #homePlayBtn {
+      position: relative;
+      overflow: hidden;
+    }
+
+    #homePlayBtn::after {
+      content: "";
+      position: absolute;
+      inset: 2px;
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,.45);
+      pointer-events: none;
+    }
+
+    .sport-ball {
+      filter: drop-shadow(0 10px 16px rgba(18, 27, 46, .12));
+    }
+
+    .sport-tabs,
+    .mini-sport-tabs {
+      background: #e8edf6;
+      border: 1px solid rgba(23,32,51,.10);
+      box-shadow: 0 12px 28px rgba(18, 27, 46, .08);
+    }
+
+    .sport-tab,
+    .mini-sport {
+      border-right: 1px solid rgba(23,32,51,.08);
+      color: #7d8798;
+      background: transparent;
+    }
+
+    .sport-tab.active,
+    .mini-sport.active {
+      background: #fff;
+      color: var(--hi-ink);
+      box-shadow: inset 0 0 0 2px rgba(255,255,255,.4);
+    }
+
+    .play-card small {
+      background: linear-gradient(90deg, var(--hi-hot), var(--hi-warm));
+      color: #fff;
+    }
+
+    .play-card strong {
+      color: #a5adbb;
+    }
+
+    .input-shell,
+    .guess-button,
+    .suggestions,
+    .clue-panel,
+    .empty-state,
+    .latest-guess-card,
+    .howto-btn,
+    .clue-toggle,
+    .tiny-action,
+    .clue-btn,
+    .modal,
+    .modal-btn {
+      border-color: rgba(23,32,51,.10);
+      box-shadow: 0 8px 22px rgba(18, 27, 46, .08);
+    }
+
+    .guess-button {
+      background: var(--hi-gradient);
+      border: none;
+    }
+
+    .guess-button span {
+      background: #fff;
+      color: var(--hi-ink);
+      margin: 2px;
+      height: calc(100% - 4px);
+      width: calc(100% - 4px);
+    }
+
+    .guess-list {
+      background: rgba(255,255,255,.52);
+      border-top: 1px solid rgba(23,32,51,.08);
+    }
+
+    .latest-guess-card {
+      background: #fff8ee;
+      border: 1px solid rgba(255,153,26,.20);
+    }
+
+    .howto-btn,
+    .clue-toggle,
+    .tiny-action,
+    .clue-btn,
+    .secondary,
+    .modal-btn.secondary {
+      background: #fff;
+      color: var(--hi-ink);
+    }
+
+    .primary,
+    .modal-btn.primary {
+      background: var(--hi-gradient);
+      color: #fff;
+      border: none;
+    }
+
+    .community-stats {
+      color: #667085;
+    }
+
   </style>
 </head>
 <body>
@@ -1782,7 +2000,7 @@
         </div>
         <div id="suggestions" class="suggestions" role="listbox"></div>
       </section>
-      <div id="status" class="status-note game-core">Hot Ice Public Beta v53 · Try typing any athlete. Tap a suggestion or press Guess.</div>
+      <div id="status" class="status-note game-core">Hot Ice Public Beta v54 · Try typing any athlete. Tap a suggestion or press Guess.</div>
       <div id="communityStats" class="community-stats game-core" hidden></div>
 
       <div class="howto-wrap game-core"><button id="howToBtn" class="howto-btn">How To Play</button></div>
@@ -3696,7 +3914,7 @@
         if (mlbResult.source === 'embedded_fallback') notes.push('MLB API unavailable · using backup list');
         if (nflUpdated) notes.push(`NFL roster/details updated for ${nflUpdated} players`);
         if (nbaResult && (nbaResult.updated || nbaResult.added)) notes.push(`NBA roster updated for ${nbaResult.updated || 0} players${nbaResult.added ? ` · ${nbaResult.added} added` : ''}`);
-        if (notes.length && appRoot.classList.contains('game-mode') && !solved) setStatus(`Hot Ice Public Beta v53 · ${notes.join(' · ')}.`);
+        if (notes.length && appRoot.classList.contains('game-mode') && !solved) setStatus(`Hot Ice Public Beta v54 · ${notes.join(' · ')}.`);
       });
     }
 
