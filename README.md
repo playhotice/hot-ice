@@ -2,25 +2,18 @@
 
 Hot Ice is a mobile-first daily sports player guessing game.
 
-## Public Beta v51 No Soccer + Roster Refresh + Share Fix
+## Public Beta v53 Sport Hub Redesign
 
 Updates:
-- Removed soccer/Premier League players from the player pool and daily answer pool
-- Game now focuses on NFL, MLB, and NBA
-- Preserved compact match details under each guess
-- Kept Reddit-style clean list UI
-- Improved roster refresh:
-  - MLB refresh still uses the MLB 40-man roster API
-  - NFL refresh now updates current team/conference/division/position details from Sleeper player data
-  - NBA refresh now pulls current team rosters from ESPN’s public team roster endpoints
-- Isolated v51 community stats from older puzzle versions because the answer pool changed
-- Fixed native Share so it does not show two “Play Hot Ice” links
-  - Native share uses one URL field
-  - Copy Result still includes the link text for texting/pasting
-- Keeps live community stats, How To Play, daily save/lock, Share Result, Copy Result, mobile layout, streaks, transparent logo, and analytics
-
-Player pool change:
-- Removed 241 soccer/Premier League players from the embedded pool
+- New bold yellow/black sports-app inspired look
+- Added a home screen with Play / How To Play / Stats
+- Added sport selection flow for NFL, NBA, and MLB
+- Added Daily Challenge and Practice Mode cards
+- Each sport now has its own daily puzzle target
+- Search, suggestions, rankings, and answer pool are filtered to the selected sport
+- Daily save state is separated by sport
+- MLB active rosters still load from the MLB API and cache for 24 hours
+- Kept the core Hot Ice game, match details, share fix, streaks, community stats, no soccer, no PGA, transparent logo, and analytics
 
 Live site:
 https://playhotice.com/
