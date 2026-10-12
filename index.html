@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Hot Ice Public Beta v54 Hot Ice Colors Sport Hub Build -->
+<!-- Hot Ice Public Beta v55 Home Sport Options + All Mode Build -->
 <html lang="en">
 <head>
   <!-- Google tag (gtag.js) -->
@@ -1915,6 +1915,98 @@
       color: #667085;
     }
 
+
+    /* v55: home sport-option buttons + ALL mode polish */
+    .home-sport-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      max-width: 390px;
+      margin: 0 auto 14px;
+    }
+
+    .home-sport-btn {
+      appearance: none;
+      min-height: 78px;
+      border-radius: 22px;
+      border: none;
+      background: var(--hi-gradient);
+      color: #fff;
+      box-shadow: 0 14px 32px rgba(39, 108, 232, .18);
+      font-size: 28px;
+      font-weight: 1000;
+      letter-spacing: 1.7px;
+      cursor: pointer;
+      text-transform: uppercase;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .home-sport-btn::after {
+      content: "";
+      position: absolute;
+      inset: 2px;
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,.45);
+      pointer-events: none;
+    }
+
+    .home-sport-btn.all-home {
+      grid-column: 1 / -1;
+      background: linear-gradient(135deg, #172033, #276ce8, #56b8f6);
+      min-height: 82px;
+    }
+
+    .secondary-home-actions {
+      grid-template-columns: 1fr 1fr;
+      margin-top: 0;
+    }
+
+    #homePlayBtn {
+      display: none;
+    }
+
+    .four-tabs {
+      grid-template-columns: repeat(4, 1fr);
+    }
+
+    .four-tabs .sport-tab,
+    .four-tabs .mini-sport {
+      font-size: 17px;
+      letter-spacing: .6px;
+    }
+
+    .four-tabs .mini-sport {
+      font-size: 12px;
+    }
+
+    .clue-btn[hidden] {
+      display: none !important;
+    }
+
+    .clue-grid:has(.clue-btn[hidden]) {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    @media (max-width: 420px) {
+      .home-sport-actions {
+        gap: 12px;
+      }
+
+      .home-sport-btn {
+        min-height: 70px;
+        font-size: 24px;
+      }
+
+      .home-sport-btn.all-home {
+        min-height: 76px;
+      }
+
+      .four-tabs .sport-tab {
+        font-size: 15px;
+      }
+    }
+
   </style>
 </head>
 <body>
@@ -1941,8 +2033,13 @@
           <h2>HOT ICE</h2>
           <p>Daily sports player guessing across NFL, NBA, and MLB.</p>
         </div>
-        <div class="home-actions">
-          <button class="home-btn primary-home" id="homePlayBtn">PLAY</button>
+        <div class="home-sport-actions" aria-label="Choose game type">
+          <button class="home-sport-btn primary-home" data-home-sport="NFL">NFL</button>
+          <button class="home-sport-btn primary-home" data-home-sport="MLB">MLB</button>
+          <button class="home-sport-btn primary-home" data-home-sport="NBA">NBA</button>
+          <button class="home-sport-btn all-home" data-home-sport="ALL">ALL</button>
+        </div>
+        <div class="home-actions secondary-home-actions">
           <button class="home-btn" id="homeHowToBtn">HOW TO PLAY</button>
           <button class="home-btn" id="homeStatsBtn">STATS</button>
         </div>
@@ -1955,10 +2052,11 @@
           <h2>PLAY</h2>
           <div class="sport-ball" id="sportBall">🏈</div>
         </div>
-        <div class="sport-tabs" role="tablist" aria-label="Choose sport">
+        <div class="sport-tabs four-tabs" role="tablist" aria-label="Choose sport">
           <button class="sport-tab active" data-sport="NFL">NFL</button>
-          <button class="sport-tab" data-sport="NBA">NBA</button>
           <button class="sport-tab" data-sport="MLB">MLB</button>
+          <button class="sport-tab" data-sport="NBA">NBA</button>
+          <button class="sport-tab" data-sport="ALL">ALL</button>
         </div>
         <button class="play-card" id="dailyChallengeBtn">
           <span>
@@ -1978,10 +2076,11 @@
 
       <section class="game-core game-top-strip">
         <button class="back-circle small-back" id="backSportBtn" aria-label="Back">←</button>
-        <div class="mini-sport-tabs" aria-label="Sport">
+        <div class="mini-sport-tabs four-tabs" aria-label="Sport">
           <button data-sport="NFL" class="mini-sport active">NFL</button>
-          <button data-sport="NBA" class="mini-sport">NBA</button>
           <button data-sport="MLB" class="mini-sport">MLB</button>
+          <button data-sport="NBA" class="mini-sport">NBA</button>
+          <button data-sport="ALL" class="mini-sport">ALL</button>
         </div>
       </section>
 
@@ -2000,7 +2099,7 @@
         </div>
         <div id="suggestions" class="suggestions" role="listbox"></div>
       </section>
-      <div id="status" class="status-note game-core">Hot Ice Public Beta v54 · Try typing any athlete. Tap a suggestion or press Guess.</div>
+      <div id="status" class="status-note game-core">Hot Ice Public Beta v55 · Try typing any athlete. Tap a suggestion or press Guess.</div>
       <div id="communityStats" class="community-stats game-core" hidden></div>
 
       <div class="howto-wrap game-core"><button id="howToBtn" class="howto-btn">How To Play</button></div>
@@ -2021,7 +2120,7 @@
       </section>
 
       <section id="guessList" class="guess-list game-core">
-        <div class="empty-state">Start with any ${selectedSport} player. Lower rank is better; match details show why each guess is close.</div>
+        <div class="empty-state">Start with ${isAllMode() ? 'any NFL, MLB, or NBA player' : `any ${selectedSport} player`}. Lower rank is better; match details show why each guess is close.</div>
       </section>
 
       <div class="menu-row compact-actions game-core">
@@ -2034,9 +2133,9 @@
   <div class="modal-backdrop" id="infoModal">
     <div class="modal">
       <h2>How To Play</h2>
-      <p>Try to guess the hidden sports player by typing any NFL, NBA, or active MLB player you think is related.</p>
+      <p>Pick NFL, MLB, NBA, or ALL, then guess the hidden player from that pool.</p>
       <p><b>Rank (#)</b> shows how close your guess is compared to all other players. Lower is better.</p>
-      <p><b>Match details:</b> each guess shows Sport, Conf, Div, Team, and Pos. A ✓ means that detail matches the secret player.</p>
+      <p><b>Match details:</b> each guess shows what matches. Sport appears only in ALL mode.</p>
       <p><b>Examples:</b></p>
       <p><b>Secret Player:</b> LeBron James<br>
       Luka Doncic → <b>#6</b> (very close)<br>
@@ -2137,7 +2236,7 @@
     const DAILY_EPOCH = new Date(2026, 0, 1);
     let mode = 'daily';
     let puzzleNumber = getPuzzleNumber();
-    let selectedSport = localStorage.getItem('hotIceSelectedSportV1') || 'NFL';
+    let selectedSport = localStorage.getItem('hotIceSelectedSportV1') || 'ALL';
 
     function getDateKey(date = new Date()) {
       return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
@@ -2172,12 +2271,20 @@
       return Number.isFinite(p.tier) && p.tier >= (ANSWER_TIER_MIN[p.sport] || 86);
     }
 
+    function isAllMode() {
+      return selectedSport === 'ALL';
+    }
+
+    function sportLabel() {
+      return isAllMode() ? 'All Sports' : selectedSport;
+    }
+
     function activeSportPlayers() {
-      return players.filter(p => p.sport === selectedSport);
+      return isAllMode() ? players : players.filter(p => p.sport === selectedSport);
     }
 
     function answerPool() {
-      const pool = players.filter(p => p.sport === selectedSport && isAnswerEligible(p));
+      const pool = activeSportPlayers().filter(isAnswerEligible);
       return pool.length ? pool : activeSportPlayers();
     }
 
@@ -3017,7 +3124,7 @@
     }
 
     function rankedAgainstTarget(p) {
-      const rankingPool = players.filter(x => x.sport === selectedSport);
+      const rankingPool = isAllMode() ? players : players.filter(x => x.sport === selectedSport);
       const ranked = rankingPool
         .map(x => ({ id: x.id, score: similarity(x, target) }))
         .sort((a, b) => b.score - a.score || a.id.localeCompare(b.id));
@@ -3056,7 +3163,7 @@
       const q = normalize(query);
       if (!q) return [];
       return players
-        .filter(p => p.sport === selectedSport)
+        .filter(p => isAllMode() || p.sport === selectedSport)
         .map(p => {
           const terms = allSearchTerms(p);
           const starts = terms.some(t => t.startsWith(q));
@@ -3089,7 +3196,7 @@
     function setStatus(msg) { statusEl.textContent = msg; }
 
 
-    const DAILY_STATE_PREFIX = 'hotIceDailyStateV4:';
+    const DAILY_STATE_PREFIX = 'hotIceDailyStateV5:';
 
     function dailyStateKey(dateKey = getDateKey()) {
       return `${DAILY_STATE_PREFIX}${selectedSport}:${dateKey}`;
@@ -3109,7 +3216,7 @@
 
       try {
         localStorage.setItem(dailyStateKey(), JSON.stringify({
-          version: 52,
+          version: 55,
           dateKey: getDateKey(),
           targetId: target.id,
           selectedSport,
@@ -3135,13 +3242,33 @@
         suggestionsEl.classList.remove('show');
       } else {
         input.disabled = false;
-        input.placeholder = `Try a ${selectedSport} player`;
+        input.placeholder = isAllMode() ? 'Try any player' : `Try a ${selectedSport} player`;
         guessBtn.disabled = false;
+      }
+    }
+
+    function updateClueVisibility() {
+      const sportBtn = document.querySelector('.clue-btn[data-clue="sport"]');
+      if (!sportBtn) return;
+
+      sportBtn.hidden = !isAllMode();
+
+      if (!isAllMode() && clueValues.sport) {
+        delete clueValues.sport;
+        clueCount = Object.keys(clueValues).length;
+      }
+
+      const clueHint = document.getElementById('clueHint');
+      if (clueHint) {
+        clueHint.textContent = isAllMode()
+          ? 'Sport clue is available in ALL mode. Clues lower your score.'
+          : 'Sport is already chosen, so clues focus on league, division, team, position, and nationality.';
       }
     }
 
     function revealSavedClues() {
       clearClueButtons();
+      updateClueVisibility();
 
       const clueValuesByKey = {
         sport: target.sport,
@@ -3160,7 +3287,7 @@
 
       document.querySelectorAll('.clue-btn').forEach(btn => {
         const key = btn.dataset.clue;
-        if (!clueValues[key]) return;
+        if (btn.hidden || !clueValues[key]) return;
         const value = clueValuesByKey[key] || 'Unknown';
         btn.textContent = `${clueLabelsByKey[key] || key}: ${value}`;
         btn.classList.add('revealed');
@@ -3225,6 +3352,7 @@
         btn.classList.remove('revealed');
         btn.textContent = clueLabels[key] || `Reveal ${key}`;
       });
+      updateClueVisibility();
     }
 
     function handleTuningCommand(raw) {
@@ -3243,19 +3371,22 @@
     }
 
     function matchDetails(player) {
-      return [
-        { label: 'Sport', match: player.sport === target.sport },
+      const details = [];
+      if (isAllMode()) details.push({ label: 'Sport', match: player.sport === target.sport });
+      details.push(
         { label: 'Conf', match: sameConferenceOrLeague(player, target) },
         { label: 'Div', match: isMeaningfulDivisionMatch(player, target) },
         { label: 'Team', match: Boolean(player.sport === target.sport && player.team && target.team && player.team === target.team && player.team !== 'Individual') },
         { label: 'Pos', match: sameExactPosition(player, target) }
-      ];
+      );
+      return details;
     }
 
     function matchStrip(player) {
+      const details = matchDetails(player);
       return `
-        <div class="match-strip" aria-label="Match details">
-          ${matchDetails(player).map(item => `
+        <div class="match-strip" aria-label="Match details" style="grid-template-columns: repeat(${details.length}, minmax(0, 1fr));">
+          ${details.map(item => `
             <span class="match-cell ${item.match ? 'match' : 'miss'}">${item.label}<span class="match-symbol">${item.match ? '✓' : '—'}</span></span>
           `).join('')}
         </div>
@@ -3266,7 +3397,7 @@
     function renderGuesses() {
       guessCountEl.textContent = guesses.length;
       clueMini.textContent = `Clues: ${clueCount}`;
-      puzzleMini.textContent = mode === 'daily' ? `${selectedSport} Daily #${puzzleNumber}` : `${selectedSport} Practice`;
+      puzzleMini.textContent = mode === 'daily' ? `${sportLabel()} Daily #${puzzleNumber}` : `${sportLabel()} Practice`;
       if (!guesses.length) {
         guessList.innerHTML = `<div class="empty-state">Start with any ${selectedSport} player. Lower rank is better; match details show why each guess is close.</div>`;
         return;
@@ -3402,6 +3533,7 @@
       const btn = e.target.closest('.clue-btn');
       if (!btn) return;
       const key = btn.dataset.clue;
+      if (btn.hidden) return;
       if (!clueValues[key]) {
         clueValues[key] = true;
         clueCount++;
@@ -3447,7 +3579,7 @@
       anonKey: 'sb_publishable_0APYCBHVS4MR627T-kiHJw_FoeDQveR'
     };
 
-    const COMMUNITY_STATS_GAME_VERSION = 52;
+    const COMMUNITY_STATS_GAME_VERSION = 55;
     const communityStatsEl = document.getElementById('communityStats');
 
     function communityStatsConfigured() {
@@ -3768,25 +3900,27 @@
 
 
     const appRoot = document.getElementById('appRoot');
-    const sportIcons = { NFL: '🏈', NBA: '🏀', MLB: '⚾' };
+    const sportIcons = { NFL: '🏈', NBA: '🏀', MLB: '⚾', ALL: '⭐' };
 
     function updateSportUI() {
-      document.querySelectorAll('[data-sport]').forEach(btn => {
-        btn.classList.toggle('active', btn.dataset.sport === selectedSport);
+      document.querySelectorAll('[data-sport], [data-home-sport]').forEach(btn => {
+        const sport = btn.dataset.sport || btn.dataset.homeSport;
+        btn.classList.toggle('active', sport === selectedSport);
       });
 
       const sportBall = document.getElementById('sportBall');
       if (sportBall) sportBall.textContent = sportIcons[selectedSport] || '⭐';
 
       const dailyCardSub = document.getElementById('dailyCardSub');
-      if (dailyCardSub) dailyCardSub.textContent = `Today’s ${selectedSport} puzzle · solo`;
+      if (dailyCardSub) dailyCardSub.textContent = `Today’s ${sportLabel()} puzzle · solo`;
 
-      input.placeholder = `Try a ${selectedSport} player`;
+      input.placeholder = isAllMode() ? 'Try any player' : `Try a ${selectedSport} player`;
       localStorage.setItem('hotIceSelectedSportV1', selectedSport);
+      updateClueVisibility();
     }
 
     function setSelectedSport(sport, options = {}) {
-      if (!['NFL', 'NBA', 'MLB'].includes(sport)) return;
+      if (!['NFL', 'MLB', 'NBA', 'ALL'].includes(sport)) return;
       selectedSport = sport;
       updateSportUI();
       target = dailyTarget();
@@ -3832,7 +3966,7 @@
         updateTimer();
         syncSolvedControls();
         saveDailyState();
-        setStatus(`${selectedSport} daily puzzle loaded.`);
+        setStatus(`${sportLabel()} daily puzzle loaded.`);
       }
 
       refreshCommunityStats();
@@ -3847,7 +3981,7 @@
       target = pool[Math.floor(Math.random() * pool.length)] || dailyTarget();
       clearGameStateForNewStart();
       renderGuesses();
-      setStatus(`${selectedSport} practice player loaded.`);
+      setStatus(`${sportLabel()} practice player loaded.`);
       showView('game');
       setTimeout(() => refocusGuessBox(), 120);
       trackEvent('sport_practice_started', { sport: selectedSport });
@@ -3858,7 +3992,13 @@
     document.getElementById('copyResultBtn').addEventListener('click', copyResultToClipboard);
     document.getElementById('copyStateBtn').addEventListener('click', copyResultToClipboard);
 
-    document.getElementById('homePlayBtn').addEventListener('click', () => showView('sport'));
+    document.querySelectorAll('[data-home-sport]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        setSelectedSport(btn.dataset.homeSport);
+        startDailyChallenge();
+      });
+    });
+
     document.getElementById('navPlayBtn').addEventListener('click', () => showView('sport'));
     document.getElementById('navHomeBtn').addEventListener('click', () => showView('home'));
     document.getElementById('backHomeBtn').addEventListener('click', () => showView('home'));
@@ -3914,7 +4054,7 @@
         if (mlbResult.source === 'embedded_fallback') notes.push('MLB API unavailable · using backup list');
         if (nflUpdated) notes.push(`NFL roster/details updated for ${nflUpdated} players`);
         if (nbaResult && (nbaResult.updated || nbaResult.added)) notes.push(`NBA roster updated for ${nbaResult.updated || 0} players${nbaResult.added ? ` · ${nbaResult.added} added` : ''}`);
-        if (notes.length && appRoot.classList.contains('game-mode') && !solved) setStatus(`Hot Ice Public Beta v54 · ${notes.join(' · ')}.`);
+        if (notes.length && appRoot.classList.contains('game-mode') && !solved) setStatus(`Hot Ice Public Beta v55 · ${notes.join(' · ')}.`);
       });
     }
 
